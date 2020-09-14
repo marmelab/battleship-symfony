@@ -1,0 +1,28 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+
+<table>
+    <tbody>
+        <tr>
+            <td class="square"></td>
+            {% for i in 0..9 %}
+               <td class="square">{{ alpha(i) }}</td>
+            {% endfor %}
+        </tr>
+        {% for i in 0..9 %}
+            <tr class="line">
+                <td class="square">{{ i + 1 }}</td>
+                {% for j in 0..9 %}
+                    <td class="square">
+                        {% if game.getShipAt(i, j) %}
+                            X
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

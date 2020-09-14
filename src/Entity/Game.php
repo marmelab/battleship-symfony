@@ -45,4 +45,20 @@ class Game
 
         return $this;
     }
+
+    public function getShipAt(int $x, int $y)
+    {
+        foreach ($this->ships as $ship)
+        {
+            foreach ($ship->getCoordinates() as $coord)
+            {
+                if ($coord[0] === $x && $coord[1] === $y)
+                {
+                    return $ship;
+                }
+            }
+        }
+
+        return false;
+    }
 }
