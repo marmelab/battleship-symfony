@@ -23,3 +23,6 @@ stop:
 
 build: ## Build the dockers images
 	docker-compose build
+
+bash-php: 
+	docker-compose run php bash
