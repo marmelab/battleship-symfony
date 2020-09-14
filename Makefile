@@ -11,18 +11,18 @@ init-db: ## Create and setup the database
 	docker-compose run --rm \
 		php bash -ci './bin/console doctrine:database:create --if-not-exists'
 
-install:
+install: ## Install dependencies and setup database
 	$(MAKE) composer-install
 	$(MAKE) init-db
 
-start:
+start: ## Start server
 	docker-compose up -d
 
-stop:
+stop: ## Stop server
 	docker-compose down
 
-build: ## Build the dockers images
+build: ## Build docker images
 	docker-compose build
 
-bash-php: 
+bash-php: ## Open a bash in php container
 	docker-compose run php bash
