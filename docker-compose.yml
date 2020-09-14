@@ -20,11 +20,12 @@ services:
     depends_on:
       - php
   mysql:
-    image: mysql
+    image: mysql:5.7
     environment:
       - MYSQL_DATABASE=battleship
+      - MYSQL_USER=battleship
       - MYSQL_PASSWORD=battleship
-      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=battleship
     ports:
       - 3306:3306
     volumes:

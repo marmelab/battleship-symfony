@@ -9,7 +9,7 @@ composer-install: ## Run composer install within the host
 
 init-db: ## Create and setup the database
 	docker-compose run --rm \
-		php bash -ci './bin/console doctrine:database:create --if-not-exists && ./bin/console doctrine:schema:update --force'
+		php bash -ci './bin/console doctrine:database:create --if-not-exists'
 
 install:
 	$(MAKE) composer-install
