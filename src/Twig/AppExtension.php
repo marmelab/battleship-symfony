@@ -14,7 +14,12 @@ class AppExtension extends AbstractExtension
         ];
     }
 
-    public function toAlpha(int $num)
+    /**
+     * Get the letter corresponding to a column
+     * 
+     * @return string
+     */
+    public function toAlpha(int $num): string
     {
         return chr(65 + $num);
     }
