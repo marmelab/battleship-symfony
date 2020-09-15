@@ -52,6 +52,13 @@ class Ship
         return $this;
     }
 
+    public function addCoordinate(array $coordinate): self
+    {
+        $this->coordinates[] = $coordinate;
+
+        return $this;
+    }
+
     public function getGame(): ?Game
     {
         return $this->game;

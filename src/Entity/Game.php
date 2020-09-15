@@ -45,4 +45,28 @@ class Game
 
         return $this;
     }
+
+    /**
+     * Returns the ship at a position or null 
+     * 
+     * @param int $x
+     * @param int $y
+     * 
+     * @return Ship|null
+     */
+    public function getShipAt(int $x, int $y): ?Ship
+    {
+        foreach ($this->ships as $ship)
+        {
+            foreach ($ship->getCoordinates() as $coord)
+            {
+                if ($coord[0] === $x && $coord[1] === $y)
+                {
+                    return $ship;
+                }
+            }
+        }
+
+        return null;
+    }
 }
