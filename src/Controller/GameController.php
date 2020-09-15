@@ -33,7 +33,16 @@ class GameController extends AbstractController
         ]);
     }
 
-    private function getRandShip($length, $orientation, $game)
+    /**
+     * Get a ship with random coordinates
+     * 
+     * @param int $length
+     * @param int $orientation
+     * @param int $game
+     * 
+     * @return Ship
+     */
+    private function getRandShip(int $length, string $orientation, Game $game): Ship
     {
         $positionOk = false;
 
