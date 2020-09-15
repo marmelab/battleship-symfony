@@ -1,0 +1,47 @@
+<div class="board">
+
+    <div class="layer">
+        {% for i in 0..9 %}
+            {% for j in 0..9 %}
+                <div class="sea_square"></div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {% if ships is defined %}
+    <div class="fleet">
+        {% for ship in ships %}
+            {% for coordinate in ship.coordinates %}
+                <div class="square" 
+                    style="grid-row-start: {{ (coordinate|first) + 1 }}; grid-column-start: {{ (coordinate|last) + 1 }};">
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+    {% if shoots is defined %}
+    <div class="shoots">
+        {% for shoot in shoots %}
+            <div class="square" 
+                style="grid-row-start: {{ (shoot.coordinates|first) + 1 }}; grid-column-start: {{ (shoot.coordinates|last) + 1 }};">
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if triggers is defined %}
+    <div class="triggers">
+        {% for trigger in triggers %}
+            <div class="square">
+                {{ form_start(trigger) }}
+                    {{ form_widget(trigger.save, { 'label': 'T' }) }}
+                {{ form_end(trigger) }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+</div>

@@ -3,5 +3,5 @@ index:
    controller: App\Controller\WelcomeController::index
 
 random_game:
-  path: /game/random
+  path: /random/{hash}
   controller: App\Controller\GameController::random

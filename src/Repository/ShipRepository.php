@@ -3,8 +3,12 @@
 namespace App\Repository;
 
 use App\Entity\Ship;
+use App\Entity\Game;
+use App\Entity\Player;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @method Ship|null find($id, $lockMode = null, $lockVersion = null)
@@ -17,5 +21,15 @@ class ShipRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Ship::class);
+    }
+
+    public function getCurrentPlayerShips(Game $game): array
+    {
+        return $this->findBy(['game' => $game, 'player' => $game->getCurrentPlayer()]);    
+    }
+
+    public function getPlayerShips(Game $game, Player $player): array
+    {
+        return $this->findBy(['game' => $game, 'player' => $player]);    
     }
 }

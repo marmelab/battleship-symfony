@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\PlayerRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * @ORM\Entity(repositoryClass=PlayerRepository::class)
@@ -27,6 +29,16 @@ class Player
      */
     private $ships;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Shoot", mappedBy="player")
+     */
+    private $shoots;
+
+    public function __construct()
+    {
+        $this->shoots = new ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -42,5 +54,10 @@ class Player
         $this->name = $name;
 
         return $this;
+    }
+
+    public function getShoots(): Collection
+    {
+        return $this->shoots;
     }
 }

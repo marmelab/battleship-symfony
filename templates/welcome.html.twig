@@ -2,6 +2,8 @@
 
 {% block body %}
 
-<a href="{{ path('random_game') }}">Start Game</a>
+{{ form_start(form) }}
+    {{ form_widget(form.save, { 'label': 'Start Random Game' }) }}
+{{ form_end(form) }}
 
 {% endblock %}
