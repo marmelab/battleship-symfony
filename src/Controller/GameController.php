@@ -16,54 +16,82 @@ class GameController extends AbstractController
         $game = new Game();
 
         $config = [
-            'ships' => [5,2],
+            'ships' => [5,4,3,3,2],
             'grid' => 10
         ];
 
         $orientations = [self::VERTICAL, self::HORIZONTAL];
 
-        for ($i=0; $i<2; $i++)
+        foreach ($config['ships'] as $shipLength)
         {
-            $ship = $this->getRandShip(3, $orientations[array_rand($orientations)], $game->getShips());
+            $ship = $this->getRandShip($shipLength, $orientations[array_rand($orientations)], $game);
             $game->addShip($ship);
         }
 
         return $this->render('game.html.twig', [
-            // this array defines the variables passed to the template,
-            // where the key is the variable name and the value is the variable value
-            // (Twig recommends using snake_case variable names: 'foo_bar' instead of 'fooBar')
             'game' => $game,
         ]);
-
-        // return new Response(
-        //     '<html><body>Lucky number: '.$randCoord.'</body></html>'
-        // );
     }
 
-    private function getRandShip($length, $orientation, $ships)
+    private function getRandShip($length, $orientation, $game)
     {
-        $coordinates = [];
-    
+        $positionOk = false;
+
         if ($orientation === self::HORIZONTAL)
         {
-            // horizontal ship
-            $line = rand(0, 9);
-            $column = rand(0, 10 - $length);
-            
-            for ($i=$column; $i < $column + $length; $i++)
+
+            while (!$positionOk)
             {
-                $coordinates[] = [$line, $i];
+                $coordinates = [];
+                $allCoordsChecked = true;
+
+                // horizontal ship
+                $line = rand(0, 9);
+                $column = rand(0, 10 - $length);
+                
+                for ($i=$column; $i < $column + $length; $i++)
+                {
+                    if ($game->getShipAt($line, $i))
+                    {
+                        $allCoordsChecked = false;
+                        break;
+                    }                
+
+                    $coordinates[] = [$line, $i];
+                }
+
+                if ($allCoordsChecked)
+                {
+                    $positionOk = true;
+                }
             }
         } 
         else 
         {
-            // vertical ship
-            $line = rand(0, 10 - $length);
-            $column = rand(0, 9);
-
-            for ($i=$line; $i < $line + $length; $i++)
+            while (!$positionOk)
             {
-                $coordinates[] = [$i, $column];
+                $coordinates = [];
+                $allCoordsChecked = true;
+
+                // vertical ship
+                $line = rand(0, 10 - $length);
+                $column = rand(0, 9);
+
+                for ($i=$line; $i < $line + $length; $i++)
+                {
+                    if ($game->getShipAt($i, $column))
+                    {
+                        $allCoordsChecked = false;
+                        break;
+                    }                
+
+                    $coordinates[] = [$i, $column];
+                }
+
+                if ($allCoordsChecked)
+                {
+                    $positionOk = true;
+                }
             }
         }
 
@@ -72,4 +100,5 @@ class GameController extends AbstractController
 
         return $ship;
     }
+
 }
