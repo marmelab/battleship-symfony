@@ -46,7 +46,7 @@ class Game
     private $ships;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=20)
      */
     private $status;
 

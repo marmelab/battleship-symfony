@@ -222,7 +222,6 @@ class GameManipulator
     public function isShipSunk(Ship $ship, Game $game): bool
     {
         foreach ($ship->getCoordinates() as $coordinates) {
-            dump($coordinates);
             $isCoordHit = false;
 
             foreach ($this->shootRepository->getCurrentPlayerShoots($game) as $shoot) {

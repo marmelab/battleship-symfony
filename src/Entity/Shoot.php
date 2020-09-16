@@ -18,12 +18,12 @@ class Shoot
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Game", inversedBy="shoots", cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Game", inversedBy="shoots")
      */
     private $game;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Player", inversedBy="shoots", cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Player", inversedBy="shoots")
      */
     private $player;
 

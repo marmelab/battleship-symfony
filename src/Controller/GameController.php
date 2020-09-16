@@ -48,16 +48,6 @@ class GameController extends AbstractController
         if ($trigger->isSubmitted() && $trigger->isValid()) {
             $data = $trigger->getData();
 
-            $game = $this->getDoctrine()
-                ->getRepository(Game::class)
-                ->findOneByHash($data['game_hash']);
-
-            if (!$game) {
-                throw $this->createNotFoundException(
-                    'No game found for hash '.$data['game_hash']
-                );
-            }
-            
             $coordinates = explode(',', $data['coordinates']);
 
             $shoot = $this->gameManipulator->shoot($coordinates, $game);
