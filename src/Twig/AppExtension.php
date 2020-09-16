@@ -13,6 +13,10 @@ class AppExtension extends AbstractExtension
             new TwigFunction('alpha', [$this, 'toAlpha']),
             new TwigFunction('match_coordinate', [$this, 'matchCoordinate']),
             new TwigFunction('to_array', [$this, 'toArray']),
+            new TwigFunction('grid_row_start', [$this, 'getGridRowStart']),
+            new TwigFunction('grid_row_end', [$this, 'getGridRowEnd']),
+            new TwigFunction('grid_col_start', [$this, 'getGridColumnStart']),
+            new TwigFunction('grid_col_end', [$this, 'getGridColumnEnd']),
         ];
     }
 
@@ -57,5 +61,49 @@ class AppExtension extends AbstractExtension
     public function toArray(string $coordinates)
     {
         return explode(',', $coordinates);
+    }
+
+    public function getGridRowStart($ship) {
+        $coordinates = $ship->getCoordinates();
+        $first = $coordinates[0];
+        $last = $coordinates[1];
+
+        if ($ship->isHorizontal()) {
+            return $first[0] + 1;
+        }
+
+        return $first[0] + 1;
+    }
+
+    public function getGridRowEnd($ship) {
+        $coordinates = $ship->getCoordinates();
+        $first = $coordinates[0];
+        $last = $coordinates[1];
+
+        if ($ship->isHorizontal()) {
+            return $first[0] + 1;
+        }
+
+        return $first[0] + 1 + $ship->length();
+    }
+
+    public function getGridColumnStart($ship) {
+        $coordinates = $ship->getCoordinates();
+        $first = $coordinates[0];
+        $last = $coordinates[1];
+
+        return $first[1] + 1;
+    }
+
+    public function getGridColumnEnd($ship) {
+        $coordinates = $ship->getCoordinates();
+        $first = $coordinates[0];
+        $last = $coordinates[1];
+
+        if ($ship->isHorizontal()) {
+            return $first[1] + 1 + $ship->length();
+        }
+
+        return $first[1] + 1; 
     }
 }

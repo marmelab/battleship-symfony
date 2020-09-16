@@ -241,6 +241,29 @@ class GameManipulator
     }
 
     /**
+     * Get opponent ships that have been sunk
+     * 
+     * @param Game $game 
+     *  
+     * @return array
+     */
+    public function getOpponentShipsSunk($game) {
+        $sunkShips = [];
+
+        $opponentShips = $this
+            ->shipRepository
+            ->getPlayerShips($game, $this->getOpponentPlayer($game));
+
+        foreach ($opponentShips as $ship) {
+            if ($this->isShipSunk($ship, $game)) {
+                $sunkShips[] = $ship;
+            }
+        }
+
+        return $sunkShips;
+    }
+
+    /**
      * Random string generator for game hash
      * 
      * @param int $length

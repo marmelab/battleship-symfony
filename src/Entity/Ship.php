@@ -82,4 +82,12 @@ class Ship
 
         return $this;
     }
+
+    public function length() {
+        return count($this->getCoordinates());
+    }
+
+    public function isHorizontal() {
+        return $this->getCoordinates()[0][0] == $this->getCoordinates()[1][0];
+    }
 }

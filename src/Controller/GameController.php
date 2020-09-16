@@ -101,7 +101,8 @@ class GameController extends AbstractController
         return $this->render('game.html.twig', [
             'game' => $game,
             'ships' => $ships,
-            'opponentShips' => $opponentShips,
+            'opponent_ships' => $opponentShips,
+            'opponent_ships_sunk' => $this->gameManipulator->getOpponentShipsSunk($game),
             'hits' => $hits,
             'shoots' => $shoots,
             'triggers' => $triggerViews,
