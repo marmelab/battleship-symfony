@@ -12,7 +12,6 @@ class AppExtension extends AbstractExtension
         return [
             new TwigFunction('alpha', [$this, 'toAlpha']),
             new TwigFunction('match_coordinate', [$this, 'matchCoordinate']),
-            new TwigFunction('to_array', [$this, 'toArray']),
             new TwigFunction('grid_row_start', [$this, 'getGridRowStart']),
             new TwigFunction('grid_row_end', [$this, 'getGridRowEnd']),
             new TwigFunction('grid_col_start', [$this, 'getGridColumnStart']),
@@ -49,18 +48,6 @@ class AppExtension extends AbstractExtension
         }
 
         return false;
-    }
-
-    /**
-     * Transforms string coordinates to an array
-     * 
-     * @param string $coordinates
-     * 
-     * @return array
-     */
-    public function toArray(string $coordinates)
-    {
-        return explode(',', $coordinates);
     }
 
     public function getGridRowStart($ship) {

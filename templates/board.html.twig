@@ -69,9 +69,9 @@
     {% if triggers is defined %}
         <div class="triggers">
             {% for trigger in triggers %}
-                {% if match_coordinate(to_array(trigger.vars.value.coordinates), shoots) %}
+                {% if match_coordinate(trigger.vars.value.coordinates|split(','), shoots) %}
                 {% else %}
-                    <div class="square" style="grid-row-start: {{ (to_array(trigger.vars.value.coordinates)|first) + 1 }}; grid-column-start: {{ (to_array(trigger.vars.value.coordinates)|last) + 1 }};">
+                    <div class="square" style="grid-row-start: {{ (trigger.vars.value.coordinates|split(',')|first) + 1 }}; grid-column-start: {{ (trigger.vars.value.coordinates|split(',')|last) + 1 }};">
                         {{ form_start(trigger) }}
                             {{ form_widget(trigger.save, { 'label': 'T' }) }}
                         {{ form_end(trigger) }}
