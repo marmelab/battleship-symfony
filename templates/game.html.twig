@@ -2,12 +2,14 @@
 
 {% block body %}
 <div>
-Tour du joueur : {{ game.currentPlayer.name }}
+    {% trans %}Player's turn{% endtrans %}:
+    {{ game.currentPlayer.name }}
 </div>
 
-{% for msg in app.session.flashBag.get('success') %}
-{{ msg }}
-            {% endfor %}
+{% for msg in app.session.flashBag.get('shoot_result') %}
+    {{ msg }}
+{% endfor %}
+
 <div class="opponent">
     {{ include('board.html.twig', {opponent_ships_sunk: opponent_ships_sunk, shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
 

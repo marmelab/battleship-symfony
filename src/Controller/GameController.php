@@ -12,6 +12,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use App\Form\Type\ShootShipType;
 use App\Form\Type\AbandonGameType;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GameController extends AbstractController
 {
@@ -25,7 +26,7 @@ class GameController extends AbstractController
     /**
      * @ParamConverter("game", options={"mapping": {"hash": "hash"}})
      */
-    public function index(Request $request, Game $game): Response
+    public function index(Request $request, Game $game, TranslatorInterface $translator): Response
     {
         if ($game->isAbandoned()) {
             return $this->render('abandoned.html.twig');
@@ -64,13 +65,13 @@ class GameController extends AbstractController
             $shipHit = $this->gameManipulator->didShootHitOpponentShip($shoot, $game);
             if ($shipHit) {
                 if ($this->gameManipulator->isShipSunk($shipHit, $game)) {
-                    $this->addFlash('success', 'COULEEEEEEEE!');
+                    $this->addFlash('shoot_result', $translator->trans('You have SINK a ship! Well done!'));
                 } else {
-                    $this->addFlash('success', 'TOUCHE!');
+                    $this->addFlash('shoot_result', $translator->trans('You hit a ship!'));
                 }
             } else {
                 $this->gameManipulator->switchCurrentPlayer($game);
-                $this->addFlash('success', 'LOUPE!');
+                $this->addFlash('shoot_result', $translator->trans('You hit the water...'));
             }
 
             return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
