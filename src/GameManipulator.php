@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Repository\ShipRepository;
 use App\Repository\ShootRepository;
 use Doctrine\Common\Collections\ArrayCollection;
+use App\Enum\GameStatusEnum;
 
 class GameManipulator
 {
@@ -33,8 +34,8 @@ class GameManipulator
     public function createGame(): Game
     {
         $game = new Game();
-        $game->setHash($this->generateRandomString());
-
+        $game->setHash($this->generateRandomGameHash());
+        
         $player1 = new Player();
         $player1->setName('PLAYER 1');
 
@@ -44,6 +45,8 @@ class GameManipulator
         $game->setPlayer1($player1);
         $game->setPlayer2($player2);
         $game->setCurrentPlayer($player1);
+        
+        $game->setStatus(GameStatusEnum::RUNNING);
 
         $config = [
             'ships' => [5,4,3,3,2],
@@ -51,7 +54,6 @@ class GameManipulator
         ];
 
         $orientations = [GameConstants::VERTICAL, GameConstants::HORIZONTAL];
-
 
         foreach ($config['ships'] as $shipLength)
         {
@@ -73,7 +75,32 @@ class GameManipulator
         return $game;
     }
 
-    public function shoot($coordinates, $game) 
+    /**
+     * Abandon a game finish it and update the status
+     * 
+     * @param Game $game
+     * 
+     * @return Game
+     */
+    public function abandonGame($game): Game
+    {
+        $game->setStatus(GameStatusEnum::ABANDONED);
+        $this->entityManager->persist($game);
+        $this->entityManager->flush();
+
+        return $game;
+    }
+
+    /**
+     * Shoot at opponent's fleet.
+     * Creates a shoot
+     * 
+     * @param array $coordinates
+     * @param Game $game
+     * 
+     * @return Shoot
+     */
+    public function shoot($coordinates, $game): Shoot
     {
         $shoot = new Shoot();
         $shoot->setGame($game);
@@ -82,22 +109,39 @@ class GameManipulator
 
         $this->entityManager->persist($shoot);
         $this->entityManager->flush();
+
+        return $shoot;
     }
 
-    public function getOpponentPlayer(Game $game)
+    /**
+     * Get current player's opponent
+     * 
+     * @param Game $game
+     * 
+     * @return Player
+     */
+    public function getOpponentPlayer(Game $game): Player
     {
         if ($game->getCurrentPlayer() === $game->getPlayer1()) {
             return $game->getPlayer2();
-        } else {
-            return $game->getPlayer1();
         }
+        
+        return $game->getPlayer1();
     }
 
+    /**
+     * Get all the current player shoots that hit an opponent ship
+     * 
+     * @param Game $game
+     * 
+     * @return array
+     */
     public function getCurrentPlayerHits(Game $game): array
     {        
+        $hits = [];
+    
         $opponentShips = $this->shipRepository
             ->getPlayerShips($game, $this->getOpponentPlayer($game));
-
 
         $collection = new ArrayCollection($opponentShips);
 
@@ -105,24 +149,30 @@ class GameManipulator
             return $ship->getCoordinates();
         });
 
-
         $shoots = new ArrayCollection(
             $this->shootRepository->getCurrentPlayerShoots($game)
         );
-        dump($opponentShipsCoordinates);
-        die();
-        $shoots->filter(function($shoot) use ($opponentShipsCoordinates) {
-            return $opponentShipsCoordinates->exists(function($key, $coords) use ($shoot) {
-                dump($coords, $shoot->getCoordinates());
-                die();
-                return $coords === $shoot->getCoordinates();
-            });
-        });
+        
+        foreach ($opponentShips as $ship) {
+            foreach ($ship->getCoordinates() as $shipCoord) {
+                foreach ($shoots as $shoot) {
+                    if ($shipCoord == $shoot->getCoordinates()) {
+                        $hits[] = $shoot;
+                    }
+                }
+            }
+        }
 
-        dump($opponentShipsCoordinates);
-        die();
+        return $hits;
     }
 
+    /**
+     * Switch game current player
+     * 
+     * @param Game $game
+     * 
+     * @return Game
+     */
     public function switchCurrentPlayer($game): Game
     {
         if ($game->getCurrentPlayer() === $game->getPlayer1()) {
@@ -138,13 +188,66 @@ class GameManipulator
     }
 
     /**
+     * Return the ship hit by a shoot or null
+     * 
+     * @param Shoot $shoot
+     * @param Game $game
+     * 
+     * @return Ship|null
+     */
+    public function didShootHitOpponentShip(Shoot $shoot, Game $game): ?Ship
+    {
+        $opponentShips = $this->shipRepository->getPlayerShips($game, $this->getOpponentPlayer($game));
+
+        foreach ($opponentShips as $ship) {
+            foreach ($ship->getCoordinates() as $coordinates) {
+                if ($coordinates == $shoot->getCoordinates()) {
+                    return $ship;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the given ship has sunk.
+     * It means all its coordinates should exist in the currentPlayer shoots property.
+     * 
+     * @param Ship $ship
+     * @param Game $game
+     * 
+     * @return bool
+     */
+    public function isShipSunk(Ship $ship, Game $game): bool
+    {
+        foreach ($ship->getCoordinates() as $coordinates) {
+            dump($coordinates);
+            $isCoordHit = false;
+
+            foreach ($this->shootRepository->getCurrentPlayerShoots($game) as $shoot) {
+                if ($shoot->getCoordinates() == $coordinates) {
+                    $isCoordHit = true;
+                    break;
+                }
+            }
+
+            if (!$isCoordHit) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Random string generator for game hash
      * 
      * @param int $length
      * 
      * @return string
      */
-    private function generateRandomString(int $length = 10) {
+    private function generateRandomGameHash(int $length = 10) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';

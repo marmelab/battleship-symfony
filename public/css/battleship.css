@@ -1,3 +1,8 @@
+
+.opponent {
+    display: flex;
+}
+
 .board {
     position: relative;
     width: 400px;
@@ -75,6 +80,22 @@
     height: 100%;
 }
 
+.hits {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(10, 30px[col-start]);
+    grid-template-rows: repeat(10, 30px[col-start]);
+}
+
+.hits .square {
+    display: inline-block;
+    background-color: green;
+    width: 100%;
+    height: 100%;
+}
+
 .triggers {
     position: absolute;
     width: 100%;
@@ -97,11 +118,13 @@
     background: transparent;
 }
 
-/* .square {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid black;
+.ship .part {
+    display: inline-block;
     width: 20px;
     height: 20px;
-} */
+    background-color: gray;
+}
+
+.ship .hit {
+    background-color: tomato;
+}

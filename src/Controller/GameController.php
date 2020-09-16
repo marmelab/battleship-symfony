@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use App\Form\Type\ShootShipType;
+use App\Form\Type\AbandonGameType;
 use Symfony\Component\HttpFoundation\Request;
 
 class GameController extends AbstractController
@@ -24,18 +25,22 @@ class GameController extends AbstractController
     /**
      * @ParamConverter("game", options={"mapping": {"hash": "hash"}})
      */
-    public function random(Request $request, Game $game): Response
+    public function index(Request $request, Game $game): Response
     {
-        $triggers = [];
-
-        foreach (range(0, 9) as $x) {
-            foreach (range(0, 9) as $y) {
-                $triggers[] = $this->createForm(ShootShipType::class, [
-                    'game_hash' => $game->getHash(),
-                    'coordinates' => join(",", [$x, $y])
-                ]);
-            }
+        if ($game->isAbandoned()) {
+            return $this->render('abandoned.html.twig');
         }
+
+        $abandonForm = $this->createForm(AbandonGameType::class);
+        $abandonForm->handleRequest($request);
+
+        if ($abandonForm->isSubmitted() && $abandonForm->isValid()) {
+            $this->gameManipulator->abandonGame($game);
+
+            return $this->redirectToRoute('index');
+        }
+
+        $triggers = $this->createTriggersForms($game);
 
         $trigger = $this->createForm(ShootShipType::class)->handleRequest($request);
 
@@ -54,11 +59,21 @@ class GameController extends AbstractController
             
             $coordinates = explode(',', $data['coordinates']);
 
-            $this->gameManipulator->shoot($coordinates, $game);
-            
-            $this->gameManipulator->switchCurrentPlayer($game);
+            $shoot = $this->gameManipulator->shoot($coordinates, $game);
 
-            return $this->redirectToRoute('random_game', ['hash' => $game->getHash()]);
+            $shipHit = $this->gameManipulator->didShootHitOpponentShip($shoot, $game);
+            if ($shipHit) {
+                if ($this->gameManipulator->isShipSunk($shipHit, $game)) {
+                    $this->addFlash('success', 'COULEEEEEEEE!');
+                } else {
+                    $this->addFlash('success', 'TOUCHE!');
+                }
+            } else {
+                $this->gameManipulator->switchCurrentPlayer($game);
+                $this->addFlash('success', 'LOUPE!');
+            }
+
+            return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
         }
 
         $triggerViews = [];
@@ -66,7 +81,7 @@ class GameController extends AbstractController
             $triggerViews[] = $trigger->createView();
         }
 
-        // $this->gameManipulator->getCurrentPlayerHits($game);
+        $hits = $this->gameManipulator->getCurrentPlayerHits($game);
 
         $ships = $this
             ->getDoctrine()
@@ -78,13 +93,35 @@ class GameController extends AbstractController
             ->getRepository(Shoot::class)
             ->getCurrentPlayerShoots($game);
             
+        $opponentShips = $this
+            ->getDoctrine()
+            ->getRepository(Ship::class)
+            ->getPlayerShips($game, $this->gameManipulator->getOpponentPlayer($game));
 
         return $this->render('game.html.twig', [
             'game' => $game,
             'ships' => $ships,
-            // 'hits' => $hits,
+            'opponentShips' => $opponentShips,
+            'hits' => $hits,
             'shoots' => $shoots,
-            'triggers' => $triggerViews
+            'triggers' => $triggerViews,
+            'abandon_form' => $abandonForm->createView()
         ]);
+    }
+
+    private function createTriggersForms($game)
+    {
+        $triggers = [];
+
+        foreach (range(0, 9) as $x) {
+            foreach (range(0, 9) as $y) {
+                $triggers[] = $this->createForm(ShootShipType::class, [
+                    'game_hash' => $game->getHash(),
+                    'coordinates' => join(",", [$x, $y])
+                ]);
+            }
+        }
+
+        return $triggers;
     }
 }

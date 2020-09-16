@@ -27,7 +27,7 @@ class WelcomeController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $game = $this->gameManipulator->createGame();
 
-            return $this->redirectToRoute('random_game', ['hash' => $game->getHash()]);
+            return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
         }
 
         return $this->render('welcome.html.twig', [

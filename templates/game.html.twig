@@ -5,8 +5,36 @@
 Tour du joueur : {{ game.currentPlayer.name }}
 </div>
 
+{% for msg in app.session.flashBag.get('success') %}
+{{ msg }}
+            {% endfor %}
+<div class="opponent">
+    {{ include('board.html.twig', {shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
 
-{{ include('board.html.twig', {shoots: shoots, triggers: triggers}, with_context = false) }}
+<div>
+    <div class="opponent-fleet-status">
+    {% for ship in opponentShips %}
+        <div class="ship">
+            {% for coordinate in ship.coordinates %}
+                {% if match_coordinate(coordinate, shoots) %}
+                    <div class="part hit"></div>
+                {% else %}
+                    <div class="part"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endfor %}
+
+    
+    </div>
+<div>
+        {{ form_start(abandon_form) }}
+            {{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
+        {{ form_end(abandon_form) }}
+    </div>
+    </div>
+    
+</div>
 
 {{ include('board.html.twig', {ships: ships}, with_context = false) }}
 

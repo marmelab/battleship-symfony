@@ -2,6 +2,6 @@ index:
    path: /
    controller: App\Controller\WelcomeController::index
 
-random_game:
-  path: /random/{hash}
-  controller: App\Controller\GameController::random
+game_index:
+  path: /game/{hash}
+  controller: App\Controller\GameController::index

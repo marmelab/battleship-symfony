@@ -31,14 +31,28 @@
     </div>
     {% endif %}
 
+    {% if hits is defined %}
+    <div class="hits">
+        {% for hit in hits %}
+            <div class="square" 
+                style="grid-row-start: {{ (hit.coordinates|first) + 1 }}; grid-column-start: {{ (hit.coordinates|last) + 1 }};">
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     {% if triggers is defined %}
     <div class="triggers">
         {% for trigger in triggers %}
-            <div class="square">
-                {{ form_start(trigger) }}
-                    {{ form_widget(trigger.save, { 'label': 'T' }) }}
-                {{ form_end(trigger) }}
-            </div>
+            {% if match_coordinate(to_array(trigger.vars.value.coordinates), shoots) %}
+            {% else %}
+                <div class="square" style="grid-row-start: {{ (to_array(trigger.vars.value.coordinates)|first) + 1 }}; grid-column-start: {{ (to_array(trigger.vars.value.coordinates)|last) + 1 }};">
+                    {{ form_start(trigger) }}
+                        {{ form_widget(trigger.save, { 'label': 'T' }) }}
+                    {{ form_end(trigger) }}
+                </div>
+            {% endif %}
+            
         {% endfor %}
     </div>
     {% endif %}

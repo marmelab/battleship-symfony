@@ -6,6 +6,7 @@ use App\Repository\GameRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Enum\GameStatusEnum;
 
 /**
  * @ORM\Entity(repositoryClass=GameRepository::class)
@@ -43,6 +44,11 @@ class Game
      * @ORM\OneToMany(targetEntity="App\Entity\Ship", mappedBy="game", cascade={"persist"})
      */
     private $ships;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $status;
 
     public function __construct()
     {
@@ -113,6 +119,22 @@ class Game
         $ship->setGame($this);
 
         return $this;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+
+        return $this;
+    }
+
+    public function isAbandoned() {
+        return $this->getStatus() === GameStatusEnum::ABANDONED;
     }
 
     /**
