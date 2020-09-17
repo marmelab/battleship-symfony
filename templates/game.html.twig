@@ -1,5 +1,12 @@
 {% extends "base.html.twig" %}
 
+{% block head %}
+	{{ parent() }}
+    {% if (ships|first).player.id != game.currentPlayer.id %}
+	    <meta http-equiv="refresh" content="5">
+    {% endif %}
+{% endblock %}
+
 {% block body %}
 
 	<div>
