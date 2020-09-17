@@ -119,7 +119,7 @@ class Game
             $this->ships->add($ship);
             $ship->setGame($this);
         }
-        
+
         return $this;
     }
 
@@ -133,10 +133,6 @@ class Game
         $this->status = $status;
 
         return $this;
-    }
-
-    public function isAbandoned() {
-        return $this->getStatus() === GameStatusEnum::ABANDONED;
     }
 
     /**

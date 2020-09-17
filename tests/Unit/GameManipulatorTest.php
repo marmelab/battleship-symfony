@@ -45,7 +45,7 @@ class GameManipulatorTest extends KernelTestCase
             ->getRepository(Shoot::class);
 
         $game = $gameRepository->findOneBy([
-            'hash' => 'test',
+            'hash' => 'game_hash',
         ]);
 
         $ship = $shipRepository->findAll()[0];

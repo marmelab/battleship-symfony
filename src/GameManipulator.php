@@ -82,13 +82,24 @@ class GameManipulator
      * 
      * @return Game
      */
-    public function abandonGame($game): Game
+    public function abandonGame(Game $game): Game
     {
         $game->setStatus(GameStatusEnum::ABANDONED);
         $this->entityManager->persist($game);
         $this->entityManager->flush();
 
         return $game;
+    }
+
+    /**
+     * Check if a game is abandoned
+     * 
+     * @param Game $game
+     * 
+     * @return bool
+     */
+    public function isAbandoned(Game $game): bool {
+        return $game->getStatus() === GameStatusEnum::ABANDONED;
     }
 
     /**
@@ -246,7 +257,7 @@ class GameManipulator
      *  
      * @return array
      */
-    public function getOpponentShipsSunk($game) {
+    public function getOpponentShipsSunk(Game $game): array {
         $sunkShips = [];
 
         $opponentShips = $this
@@ -269,7 +280,7 @@ class GameManipulator
      * 
      * @return string
      */
-    private function generateRandomGameHash(int $length = 10) {
+    private function generateRandomGameHash(int $length = 10): string {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);
         $randomString = '';

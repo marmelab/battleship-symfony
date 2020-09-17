@@ -15,10 +15,26 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GameController extends AbstractController
 {
+    /**
+     * Used to manage game's action coming from the players
+     * 
+     * @var GameManipulator $gameManipulator
+     */
     private $gameManipulator;
 
+    /**
+     * Translate the wording displayed
+     * 
+     * @var TranslatorInterface $translator
+     */
     private $translator;
 
+    /**
+     * Inject and initialize the services used in the controller
+     * 
+     * @param GameManipulator $gameManipulator
+     * @param TranslatorInterface $translator
+     */
     public function __construct(GameManipulator $gameManipulator, TranslatorInterface $translator)
     {
         $this->gameManipulator = $gameManipulator;
@@ -30,7 +46,7 @@ class GameController extends AbstractController
      */
     public function index(Request $request, Game $game): Response
     {
-        if ($game->isAbandoned()) {
+        if ($this->gameManipulator->isAbandoned($game)) {
             return $this->render('abandoned.html.twig');
         }
 
@@ -44,12 +60,10 @@ class GameController extends AbstractController
         }
 
         $triggerViews = $this->createTriggersForms($game);
-
         $trigger = $this->createForm(ShootShipType::class)->handleRequest($request);
 
         if ($trigger->isSubmitted() && $trigger->isValid()) {
-
-            $this->manageShoot($trigger->getData(), $game);
+            $this->shootOpponentFleet($trigger->getData()['coordinates'], $game);
 
             return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
         }
@@ -107,16 +121,16 @@ class GameController extends AbstractController
     }
 
     /**
-     * Shoot at opponent fleet and set correct message fro the player
+     * Shoot at opponent fleet and set correct message for the player
      * 
      * @param array $data
      * @param Game $game
      * 
      * @return null
      */
-    private function manageShoot(array $data, Game $game): void
+    private function shootOpponentFleet(string $coordinates, Game $game): void
     {
-        $coordinates = explode(',', $data['coordinates']);
+        $coordinates = explode(',', $coordinates);
 
         $shoot = $this->gameManipulator->shoot($coordinates, $game);
 

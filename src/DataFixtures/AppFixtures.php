@@ -14,7 +14,7 @@ class AppFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $game = new Game();
-        $game->setHash(('test'));
+        $game->setHash(('game_hash'));
         $game->setStatus(('RUNNING'));
         
         $player1 = new Player();

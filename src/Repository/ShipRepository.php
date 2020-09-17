@@ -23,11 +23,25 @@ class ShipRepository extends ServiceEntityRepository
         parent::__construct($registry, Ship::class);
     }
 
+    /**
+     * Get current player fleet
+     * 
+     * @param Game $game
+     * 
+     * @return array
+     */
     public function getCurrentPlayerShips(Game $game): array
     {
-        return $this->findBy(['game' => $game, 'player' => $game->getCurrentPlayer()]);    
+        return $this->getPlayerShips($game, $game->getCurrentPlayer());
     }
 
+    /**
+     * Get one player fleet
+     * 
+     * @param Game $game
+     * 
+     * @return array
+     */
     public function getPlayerShips(Game $game, Player $player): array
     {
         return $this->findBy(['game' => $game, 'player' => $player]);    

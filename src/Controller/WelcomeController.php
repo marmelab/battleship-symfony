@@ -11,8 +11,18 @@ use Symfony\Component\HttpFoundation\Request;
 
 class WelcomeController extends AbstractController
 {
+    /**
+     * Used to create the game
+     * 
+     * @var GameManipulator $gameManipulator
+     */
     private $gameManipulator;
 
+    /**
+     * Inject GameManipulator for the game creation
+     * 
+     * @param GameManipulator $gameManipulator
+     */
     public function __construct(GameManipulator $gameManipulator)
     {
         $this->gameManipulator = $gameManipulator;
