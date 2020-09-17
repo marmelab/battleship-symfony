@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use App\Repository\PlayerRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -34,6 +33,11 @@ class Player
      */
     private $shoots;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $hash;
+
     public function __construct()
     {
         $this->shoots = new ArrayCollection();
@@ -59,5 +63,17 @@ class Player
     public function getShoots(): Collection
     {
         return $this->shoots;
+    }
+
+    public function getHash(): string 
+    {
+        return $this->hash;
+    }
+
+    public function setHash(string $hash): self 
+    {
+        $this->hash = $hash;
+
+        return $this;
     }
 }
