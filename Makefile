@@ -26,3 +26,7 @@ build: ## Build docker images
 
 bash-php: ## Open a bash in php container
 	docker-compose run php bash
+
+test-php: ## Launch phpunit tests
+	docker-compose run --rm \
+		php bash -ci './bin/console doctrine:database:create --env=test && ./bin/console doctrine:fixtures:load --env=test --no-interaction && bin/phpunit'
