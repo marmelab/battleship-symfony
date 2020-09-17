@@ -115,9 +115,11 @@ class Game
 
     public function addShip(Ship $ship): self
     {
-        $this->ships[] = $ship;
-        $ship->setGame($this);
-
+        if (!$this->ships->contains($ship)) {
+            $this->ships->add($ship);
+            $ship->setGame($this);
+        }
+        
         return $this;
     }
 
