@@ -2,20 +2,26 @@
 
 namespace App\Twig;
 
+use App\Entity\Ship;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
+use App\ShipManipulator;
 
 class AppExtension extends AbstractExtension
 {
+    private $shipManipulator;
+
+    public function __construct(ShipManipulator $shipManipulator)
+    {
+        $this->shipManipulator = $shipManipulator;
+    }
+
     public function getFunctions()
     {
         return [
             new TwigFunction('alpha', [$this, 'toAlpha']),
             new TwigFunction('match_coordinate', [$this, 'matchCoordinate']),
-            new TwigFunction('grid_row_start', [$this, 'getGridRowStart']),
-            new TwigFunction('grid_row_end', [$this, 'getGridRowEnd']),
-            new TwigFunction('grid_col_start', [$this, 'getGridColumnStart']),
-            new TwigFunction('grid_col_end', [$this, 'getGridColumnEnd']),
+            new TwigFunction('grid_attributes', [$this, 'getGridAttributes']),
         ];
     }
 
@@ -50,45 +56,86 @@ class AppExtension extends AbstractExtension
         return false;
     }
 
-    public function getGridRowStart($ship) {
+    /**
+     * Get css grid attributes for positioning ships
+     * 
+     * @param Ship $ship
+     * 
+     * @return string
+     */
+    public function getGridAttributes(Ship $ship): string
+    {
+        $gridRowStart = $this->getGridRowStart($ship);
+        $gridRowEnd = $this->getGridRowEnd($ship);
+        $gridColumnStart = $this->getGridColumnStart($ship);
+        $gridColumnEnd = $this->getGridColumnEnd($ship);
+
+        return "grid-row-start: ${gridRowStart}; grid-row-end: ${gridRowEnd}; grid-column-start: ${gridColumnStart}; grid-column-end: ${gridColumnEnd}";
+    }
+
+    /**
+     * Get grid-row-start attribute for a ship
+     * 
+     * @param Ship $ship
+     * 
+     * @return string
+     */
+    private function getGridRowStart(Ship $ship): string {
         $coordinates = $ship->getCoordinates();
         $first = $coordinates[0];
-        $last = $coordinates[1];
 
-        if ($ship->isHorizontal()) {
+        if ($this->shipManipulator->isHorizontal($ship)) {
             return $first[0] + 1;
         }
 
         return $first[0] + 1;
     }
 
-    public function getGridRowEnd($ship) {
+    /**
+     * Get grid-row-end attribute for a ship
+     * 
+     * @param Ship $ship
+     * 
+     * @return string
+     */
+    private function getGridRowEnd(Ship $ship): string {
         $coordinates = $ship->getCoordinates();
         $first = $coordinates[0];
-        $last = $coordinates[1];
 
-        if ($ship->isHorizontal()) {
+        if ($this->shipManipulator->isHorizontal($ship)) {
             return $first[0] + 1;
         }
 
-        return $first[0] + 1 + $ship->length();
+        return $first[0] + 1 + $this->shipManipulator->length($ship);
     }
 
-    public function getGridColumnStart($ship) {
+    /**
+     * Get grid-column-start attribute for a ship
+     * 
+     * @param Ship $ship
+     * 
+     * @return string
+     */
+    private function getGridColumnStart(Ship $ship): string {
         $coordinates = $ship->getCoordinates();
         $first = $coordinates[0];
-        $last = $coordinates[1];
 
         return $first[1] + 1;
     }
 
-    public function getGridColumnEnd($ship) {
+    /**
+     * Get grid-column-end attribute for a ship
+     * 
+     * @param Ship $ship
+     * 
+     * @return string
+     */
+    private function getGridColumnEnd(Ship $ship): string {
         $coordinates = $ship->getCoordinates();
         $first = $coordinates[0];
-        $last = $coordinates[1];
 
-        if ($ship->isHorizontal()) {
-            return $first[1] + 1 + $ship->length();
+        if ($this->shipManipulator->isHorizontal($ship)) {
+            return $first[1] + 1 + $this->shipManipulator->length($ship);
         }
 
         return $first[1] + 1; 

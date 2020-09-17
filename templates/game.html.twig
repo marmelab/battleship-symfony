@@ -1,44 +1,43 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-<div>
-    {% trans %}Player's turn{% endtrans %}:
-    {{ game.currentPlayer.name }}
-</div>
 
-{% for msg in app.session.flashBag.get('shoot_result') %}
-    {{ msg }}
-{% endfor %}
+	<div>
+		{% trans %}Player's turn{% endtrans %}:
+		{{ game.currentPlayer.name }}
+	</div>
 
-<div class="opponent">
-    {{ include('board.html.twig', {opponent_ships_sunk: opponent_ships_sunk, shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
+	{% for msg in app.session.flashBag.get('shoot_result') %}
+		{{ msg }}
+	{% endfor %}
 
-<div>
-    <div class="opponent-fleet-status">
-    {% for ship in opponent_ships %}
-        <div class="ship">
-            {% for coordinate in ship.coordinates %}
-                {% if match_coordinate(coordinate, shoots) %}
-                    <div class="part hit"></div>
-                {% else %}
-                    <div class="part"></div>
-                {% endif %}
-            {% endfor %}
-        </div>
-    {% endfor %}
+	<div class="opponent">
+		{{ include('board.html.twig', {opponent_ships_sunk: opponent_ships_sunk, shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
 
-    
-    </div>
-<div>
-        {{ form_start(abandon_form) }}
-            {{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
-        {{ form_end(abandon_form) }}
-    </div>
-    </div>
-    
-</div>
+		<div>
+			<div class="opponent-fleet-status">
+				{% for ship in opponent_ships %}
+					<div class="ship">
+						{% for coordinate in ship.coordinates %}
+							{% if match_coordinate(coordinate, shoots) %}
+								<div class="part hit"></div>
+							{% else %}
+								<div class="part"></div>
+							{% endif %}
+						{% endfor %}
+					</div>
+				{% endfor %}
+			</div>
 
-{{ include('board.html.twig', {ships: ships}, with_context = false) }}
+			<div>
+				{{ form_start(abandon_form) }}
+				{{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
+				{{ form_end(abandon_form) }}
+			</div>
+		</div>
 
+	</div>
+
+	{{ include('board.html.twig', {ships: ships}, with_context = false) }}
 
 {% endblock %}

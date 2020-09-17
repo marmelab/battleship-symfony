@@ -21,39 +21,14 @@ class ShootRepository extends ServiceEntityRepository
     }
 
     /**
+     * Returns the shoots of the current player
      * 
+     * @param Game $game
+     * 
+     * @return array
      */
     public function getCurrentPlayerShoots(Game $game): array
     {
         return $this->findBy(['game' => $game, 'player' => $game->getCurrentPlayer()]);    
     }
-    
-    // /**
-    //  * @return Shoot[] Returns an array of Shoot objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('s.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Shoot
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

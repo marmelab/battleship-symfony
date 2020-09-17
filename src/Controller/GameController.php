@@ -4,7 +4,6 @@ namespace App\Controller;
 use App\Entity\Game;
 use App\Entity\Ship;
 use App\Entity\Shoot;
-use App\Constants\GameConstants;
 use App\GameManipulator;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -101,7 +100,14 @@ class GameController extends AbstractController
         ]);
     }
 
-    private function createTriggersForms($game)
+    /**
+     * Creates all the forms for shooting the opponent
+     * 
+     * @param Game $game
+     * 
+     * @return array
+     */
+    private function createTriggersForms(Game $game)
     {
         $triggers = [];
 
