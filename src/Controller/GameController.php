@@ -69,6 +69,12 @@ class GameController extends AbstractController
             return $this->render('abandoned.html.twig');
         }
 
+        $winner = $this->gameManipulator->getWinner($game);
+        if ($winner) {
+            $this->gameManipulator->setGameAsWon($game);
+            return $this->render('win.html.twig', ['winner' => $winner]);
+        }
+
         $gamePlayer = $this->playerProvider->getPlayer($game);
         $currentPlayer = $game->getCurrentPlayer();
 

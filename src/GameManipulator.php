@@ -122,6 +122,60 @@ class GameManipulator
     }
 
     /**
+     * Tells if one of the player won the game
+     * 
+     * @param Game $game
+     * 
+     * @return Player|null
+     */
+    public function getWinner(Game $game): ?Player
+    {
+        if ($this->hasSunkenFleet($game, $game->getPlayer1())) {
+            return $game->getPlayer2();
+        } elseif ($this->hasSunkenFleet($game, $game->getPlayer2())) {
+            return $game->getPlayer1();
+        }
+
+        return null;
+    }
+
+    /**
+     * Update the status of the game to OVER
+     * 
+     * @param Game $game
+     * 
+     * @return Game
+     */
+    public function setGameAsWon(Game $game): Game
+    {
+        $game->setStatus(GameStatusEnum::OVER);
+        $this->entityManager->persist($game);
+        $this->entityManager->flush();
+
+        return $game;
+    }
+
+    /**
+     * Used to know if all the ships of a player have sunk
+     * 
+     * @param Game $game
+     * @param Player $player
+     * 
+     * @return bool
+     */
+    public function hasSunkenFleet(Game $game, Player $player): bool
+    {
+        $ships = $this->shipRepository->getPlayerShips($game, $player);
+        foreach ($ships as $ship) {
+            if (!$this->isShipSunk($ship, $game, $this->getOpponentPlayer($game, $player))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
      * Shoot at opponent's fleet.
      * Creates a shoot
      * 

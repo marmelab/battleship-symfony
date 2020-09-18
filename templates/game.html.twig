@@ -21,11 +21,11 @@
 				<div>
 					{% if gamePlayer == game.currentPlayer %}
 						<h3 style="color: green;">
-							{% trans %}YOUR TURN{% endtrans %}:
+							{{ "Your Turn"|trans|upper }}
 						</h3>
 					{% else %}
 						<h3 style="color: orange;">
-							{% trans %}WAITING FOR YOUR OPPONENT{% endtrans %}:
+							{% trans %}Waiting for your opponent{% endtrans %}:
 						</h3>
 					{% endif %}
 				</div>
