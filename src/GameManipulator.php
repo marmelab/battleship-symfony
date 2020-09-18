@@ -12,6 +12,9 @@ use App\Repository\ShipRepository;
 use App\Repository\ShootRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Enum\GameStatusEnum;
+use App\Repository\GameRepository;
+use App\Repository\PlayerRepository;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Utils;
 
 class GameManipulator
@@ -20,6 +23,11 @@ class GameManipulator
      * @var EntityManagerInterface $entityManager
      */
     private $entityManager;
+
+    /**
+     * @var GameRepository $gameRepository
+     */
+    private $gameRepository;
 
     /**
      * @var ShipRepository $shipRepository
@@ -32,17 +40,36 @@ class GameManipulator
     private $shootRepository;
 
     /**
+     * @var PlayerRepository $playerRepository
+     */
+    private $playerRepository;
+
+    /**
+     * @var SessionInterface $session
+     */
+    private $session;
+
+    /**
      * Inject repositories
      * 
      * @param EntityManagerInterface $entityManager
      * @param ShipRepository $shipRepository
      * @param ShootRepository $shootRepository
      */
-    public function __construct(EntityManagerInterface $entityManager, ShipRepository $shipRepository, ShootRepository $shootRepository)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        GameRepository $gameRepository,
+        ShipRepository $shipRepository,
+        ShootRepository $shootRepository,
+        PlayerRepository $playerRepository,
+        SessionInterface $session
+    ) {
         $this->entityManager = $entityManager;
+        $this->gameRepository = $gameRepository;
         $this->shipRepository = $shipRepository;
         $this->shootRepository = $shootRepository;
+        $this->playerRepository = $playerRepository;
+        $this->session = $session;
     }
 
     /**
@@ -55,9 +82,18 @@ class GameManipulator
         $game = new Game();
         $game->setHash(Utils::generateRandomGameHash());
 
-        $player1 = new Player();
-        $player1->setName('PLAYER 1');
-        $player1->setHash(Utils::generateRandomGameHash(50));
+        $player1 = null;
+
+        $hash = $this->session->get('player_hash');
+        if ($hash) {
+            $player1 = $this->playerRepository->findOneBy(['hash' => $hash]);
+        }
+
+        if (!$player1) {
+            $player1 = new Player();
+            $player1->setName('PLAYER 1');
+            $player1->setHash(Utils::generateRandomGameHash(50));
+        }
 
         $player2 = new Player();
         $player2->setName('PLAYER 2');
@@ -66,8 +102,26 @@ class GameManipulator
         $game->setPlayer2($player2);
         $game->setCurrentPlayer($player1);
 
-        $game->setStatus(GameStatusEnum::RUNNING);
+        $game->setStatus(GameStatusEnum::OPEN);
 
+        $game = $this->initShipsForPlayer($game, $player1);
+
+        $this->entityManager->persist($game);
+        $this->entityManager->flush();
+
+        return $game;
+    }
+
+    /**
+     * Create randomly positioned ships and add them to the player
+     * 
+     * @param Game $game
+     * @param Player $player
+     * 
+     * @return Game
+     */
+    public function initShipsForPlayer(Game $game, Player $player): Game
+    {
         $config = [
             'ships' => [5, 4, 3, 3, 2],
             'grid' => 10
@@ -77,20 +131,69 @@ class GameManipulator
 
         foreach ($config['ships'] as $shipLength) {
             $ship = $this->getRandShip($shipLength, $orientations[array_rand($orientations)], $game);
-            $ship->setPlayer($player1);
+            $ship->setPlayer($player);
             $game->addShip($ship);
         }
 
-        foreach ($config['ships'] as $shipLength) {
-            $ship = $this->getRandShip($shipLength, $orientations[array_rand($orientations)], $game);
-            $ship->setPlayer($player2);
-            $game->addShip($ship);
+        return $game;
+    }
+
+    /**
+     * Add a second player to the game
+     * 
+     * @param string $gameHash
+     * 
+     * @return Game|null
+     */
+    public function joinGame(string $gameHash): ?Game
+    {
+        $game = $this->gameRepository->findOneBy(['hash' => $gameHash]);
+
+        if (!$game) {
+            return null;
         }
+
+        if ($this->isRunningGame($game)) {
+            return null;
+        }
+
+        $player2 = $game->getPlayer2();
+
+        $hash = $this->session->get('player_hash');
+
+        if ($hash) {
+            $player2 = $this->playerRepository->findOneBy(['hash' => $hash]);
+        }
+
+        if (!$player2) {
+            $player2 = new Player();
+            $player2->setName('PLAYER 2');
+
+            $hash = Utils::generateRandomGameHash(50);
+            $player2->setHash($hash);
+            $this->session->set('player_hash', $hash);
+        }
+
+        $game->setPlayer2($player2);
+        $game = $this->initShipsForPlayer($game, $player2);
+        $game->setStatus(GameStatusEnum::RUNNING);
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
 
         return $game;
+    }
+
+    /**
+     * Check if the game has already started
+     * 
+     * @param Game $game
+     * 
+     * @return bool
+     */
+    public function isRunningGame(Game $game): bool
+    {
+        return $game->getStatus() == GameStatusEnum::RUNNING;
     }
 
     /**
@@ -130,6 +233,10 @@ class GameManipulator
      */
     public function getWinner(Game $game): ?Player
     {
+        if (!$game->getPlayer1() || !$game->getPlayer2()) {
+            return null;
+        }
+        
         if ($this->hasSunkenFleet($game, $game->getPlayer1())) {
             return $game->getPlayer2();
         } elseif ($this->hasSunkenFleet($game, $game->getPlayer2())) {
@@ -146,13 +253,26 @@ class GameManipulator
      * 
      * @return Game
      */
-    public function setGameAsWon(Game $game): Game
+    public function setGameAsWon(Game $game, Player $player): Game
     {
+        $game->setWinner($player);
         $game->setStatus(GameStatusEnum::OVER);
         $this->entityManager->persist($game);
         $this->entityManager->flush();
 
         return $game;
+    }
+
+    /**
+     * Check if the game is already finished
+     * 
+     * @param Game $game
+     * 
+     * @return bool
+     */
+    public function isGameOver($game): bool
+    {
+        return $game->getStatus() == GameStatusEnum::OVER;
     }
 
     /**

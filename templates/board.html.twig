@@ -39,11 +39,31 @@
 		</div>
 	{% endif %}
 
+	{% if opponent_shoots is defined %}
+		<div class="shoots">
+			{% for shoot in opponent_shoots %}
+				<div class="square" style="grid-row-start: {{ (shoot.coordinates|first) + 1 }}; grid-column-start: {{ (shoot.coordinates|last) + 1 }};">
+					<div class="shoot"></div>
+				</div>
+			{% endfor %}
+		</div>
+	{% endif %}
+
 	{% if hits is defined %}
 		<div class="hits">
 			{% for hit in hits %}
 				<div class="square" style="grid-row-start: {{ (hit.coordinates|first) + 1 }}; grid-column-start: {{ (hit.coordinates|last) + 1 }};">
 					<div class="hit"></div>
+				</div>
+			{% endfor %}
+		</div>
+	{% endif %}
+
+	{% if opponent_hits is defined %}
+		<div class="hits">
+			{% for hit in opponent_hits %}
+				<div class="square" style="grid-row-start: {{ (hit.coordinates|first) + 1 }}; grid-column-start: {{ (hit.coordinates|last) + 1 }};">
+					<div class="hit explosion"></div>
 				</div>
 			{% endfor %}
 		</div>

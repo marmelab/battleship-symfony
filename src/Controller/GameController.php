@@ -69,12 +69,15 @@ class GameController extends AbstractController
             return $this->render('abandoned.html.twig');
         }
 
-        $winner = $this->gameManipulator->getWinner($game);
-        if ($winner) {
-            $this->gameManipulator->setGameAsWon($game);
-            return $this->render('win.html.twig', ['winner' => $winner]);
+        if ($this->gameManipulator->isGameOver($game)) {
+            return $this->render('win.html.twig', ['winner' => $game->getWinner()]);
+        } elseif ($this->gameManipulator->isRunningGame($game)) {
+            $winner = $this->gameManipulator->getWinner($game);
+            if ($winner) {
+                return $this->render('win.html.twig', ['winner' => $winner]);
+            }
         }
-
+        
         $gamePlayer = $this->playerProvider->getPlayer($game);
         $currentPlayer = $game->getCurrentPlayer();
 
@@ -101,6 +104,7 @@ class GameController extends AbstractController
         }
 
         $hits = $this->gameManipulator->getPlayerHits($game, $gamePlayer);
+        $opponentHits = $this->gameManipulator->getPlayerHits($game, $this->gameManipulator->getOpponentPlayer($game, $gamePlayer));
 
         $ships = $this
             ->getDoctrine()
@@ -111,6 +115,11 @@ class GameController extends AbstractController
             ->getDoctrine()
             ->getRepository(Shoot::class)
             ->getPlayerShoots($game, $gamePlayer);
+
+        $opponentShoots = $this
+            ->getDoctrine()
+            ->getRepository(Shoot::class)
+            ->getPlayerShoots($game, $this->gameManipulator->getOpponentPlayer($game, $gamePlayer));
 
         $opponentShips = $this
             ->getDoctrine()
@@ -125,7 +134,9 @@ class GameController extends AbstractController
             'ships' => $ships,
             'opponent_ships' => $opponentShips,
             'opponent_ships_sunk' => $opponentSunkShips,
+            'opponent_hits' => $opponentHits,
             'hits' => $hits,
+            'opponent_shoots' => $opponentShoots,
             'shoots' => $shoots,
             'triggers' => $triggerViews,
             'abandon_form' => $abandonForm->createView()

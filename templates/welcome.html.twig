@@ -1,9 +1,21 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
+	<h1>Battleship</h1>
 
-{{ form_start(form) }}
-    {{ form_widget(form.save, { 'label': 'Start Random Game' }) }}
-{{ form_end(form) }}
+	{{ form_start(form) }}
+	{{ form_widget(form.save, { 'label': 'Start Random Game' }) }}
+	{{ form_end(form) }}
+	<br>
+	{% trans %}Public Games{% endtrans %}
+	<br><br>
+	{% for join_form in join_forms %}
+		{{ form_start(join_form) }}
+		{{ join_form.vars.value.game_hash }}
+		{{ form_widget(join_form.save, { 'label': 'Rejoindre' }) }}
+		{{ form_end(join_form) }}
+		<br>
+	{% endfor %}
+
 
 {% endblock %}
