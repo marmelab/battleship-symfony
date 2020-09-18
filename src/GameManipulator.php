@@ -128,13 +128,11 @@ class GameManipulator
      * 
      * @return Player|null
      */
-    public function hasPlayerWon(Game $game): ?Player
+    public function getWinner(Game $game): ?Player
     {
-        if ($this->fleetHasSunk($game, $game->getPlayer1())) {
-            $this->setGameAsWon($game);
+        if ($this->hasSunkenFleet($game, $game->getPlayer1())) {
             return $game->getPlayer2();
-        } elseif ($this->fleetHasSunk($game, $game->getPlayer2())) {
-            $this->setGameAsWon($game);
+        } elseif ($this->hasSunkenFleet($game, $game->getPlayer2())) {
             return $game->getPlayer1();
         }
 
@@ -165,19 +163,16 @@ class GameManipulator
      * 
      * @return bool
      */
-    public function fleetHasSunk(Game $game, Player $player): bool
+    public function hasSunkenFleet(Game $game, Player $player): bool
     {
-        $fleetHasSunk = true;
-
         $ships = $this->shipRepository->getPlayerShips($game, $player);
         foreach ($ships as $ship) {
             if (!$this->isShipSunk($ship, $game, $this->getOpponentPlayer($game, $player))) {
-                $fleetHasSunk = false;
-                break;
+                return false;
             }
         }
 
-        return $fleetHasSunk;
+        return true;
     }
 
     /**

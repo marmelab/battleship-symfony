@@ -21,7 +21,7 @@
 				<div>
 					{% if gamePlayer == game.currentPlayer %}
 						<h3 style="color: green;">
-							{% trans %}Your Turn{% endtrans %}:
+							{{ "Your Turn"|trans|upper }}
 						</h3>
 					{% else %}
 						<h3 style="color: orange;">
