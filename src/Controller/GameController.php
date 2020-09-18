@@ -1,16 +1,21 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Game;
+use App\Entity\Player;
 use App\Entity\Ship;
 use App\Entity\Shoot;
 use App\GameManipulator;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use App\Form\Type\ShootShipType;
 use App\Form\Type\AbandonGameType;
+use App\PlayerManipulator;
+use App\Provider\PlayerProvider;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GameController extends AbstractController
@@ -30,15 +35,29 @@ class GameController extends AbstractController
     private $translator;
 
     /**
+     * @var PlayerProvider $playerProvider
+     */
+    private $playerProvider;
+
+    /**
      * Inject and initialize the services used in the controller
      * 
      * @param GameManipulator $gameManipulator
      * @param TranslatorInterface $translator
+     * @param PlayerProvider $playerProvider
      */
-    public function __construct(GameManipulator $gameManipulator, TranslatorInterface $translator)
-    {
+    public function __construct(
+        GameManipulator $gameManipulator,
+        PlayerManipulator $playerManipulator,
+        TranslatorInterface $translator,
+        PlayerProvider $playerProvider,
+        SessionInterface $session
+    ) {
         $this->gameManipulator = $gameManipulator;
+        $this->playerManipulator = $playerManipulator;
         $this->translator = $translator;
+        $this->playerProvider = $playerProvider;
+        $this->session = $session;
     }
 
     /**
@@ -50,6 +69,9 @@ class GameController extends AbstractController
             return $this->render('abandoned.html.twig');
         }
 
+        $gamePlayer = $this->playerProvider->getPlayer($game);
+        $currentPlayer = $game->getCurrentPlayer();
+
         $abandonForm = $this->createForm(AbandonGameType::class);
         $abandonForm->handleRequest($request);
 
@@ -59,37 +81,44 @@ class GameController extends AbstractController
             return $this->redirectToRoute('index');
         }
 
-        $triggerViews = $this->createTriggersForms($game);
-        $trigger = $this->createForm(ShootShipType::class)->handleRequest($request);
+        // TODO: extract all the view variables creation
+        $triggerViews = [];
+        if ($currentPlayer == $gamePlayer) {
+            $triggerViews = $this->createTriggersForms($game);
+            $trigger = $this->createForm(ShootShipType::class)->handleRequest($request);
 
-        if ($trigger->isSubmitted() && $trigger->isValid()) {
-            $this->shootOpponentFleet($trigger->getData()['coordinates'], $game);
+            if ($trigger->isSubmitted() && $trigger->isValid()) {
+                $this->shootOpponentFleet($trigger->getData()['coordinates'], $game, $gamePlayer);
 
-            return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
+                return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
+            }
         }
 
-        $hits = $this->gameManipulator->getCurrentPlayerHits($game);
+        $hits = $this->gameManipulator->getPlayerHits($game, $gamePlayer);
 
         $ships = $this
             ->getDoctrine()
             ->getRepository(Ship::class)
-            ->getCurrentPlayerShips($game);
+            ->getPlayerShips($game, $gamePlayer);
 
         $shoots = $this
             ->getDoctrine()
             ->getRepository(Shoot::class)
-            ->getCurrentPlayerShoots($game);
-            
+            ->getPlayerShoots($game, $gamePlayer);
+
         $opponentShips = $this
             ->getDoctrine()
             ->getRepository(Ship::class)
-            ->getPlayerShips($game, $this->gameManipulator->getOpponentPlayer($game));
+            ->getPlayerShips($game, $this->gameManipulator->getOpponentPlayer($game, $gamePlayer));
+
+        $opponentSunkShips = $this->gameManipulator->getOpponentShipsSunk($game, $gamePlayer);
 
         return $this->render('game.html.twig', [
+            'gamePlayer' => $gamePlayer,
             'game' => $game,
             'ships' => $ships,
             'opponent_ships' => $opponentShips,
-            'opponent_ships_sunk' => $this->gameManipulator->getOpponentShipsSunk($game),
+            'opponent_ships_sunk' => $opponentSunkShips,
             'hits' => $hits,
             'shoots' => $shoots,
             'triggers' => $triggerViews,
@@ -128,15 +157,15 @@ class GameController extends AbstractController
      * 
      * @return null
      */
-    private function shootOpponentFleet(string $coordinates, Game $game): void
+    private function shootOpponentFleet(string $coordinates, Game $game, Player $player): void
     {
         $coordinates = explode(',', $coordinates);
 
         $shoot = $this->gameManipulator->shoot($coordinates, $game);
 
-        $shipHit = $this->gameManipulator->didShootHitOpponentShip($shoot, $game);
+        $shipHit = $this->gameManipulator->didShootHitOpponentShip($shoot, $game, $player);
         if ($shipHit) {
-            if ($this->gameManipulator->isShipSunk($shipHit, $game)) {
+            if ($this->gameManipulator->isShipSunk($shipHit, $game, $player)) {
                 $this->addFlash('shoot_result', $this->translator->trans('You have SUNK a ship! Well done!'));
             } else {
                 $this->addFlash('shoot_result', $this->translator->trans('You hit a ship!'));

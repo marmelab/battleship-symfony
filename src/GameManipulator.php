@@ -12,13 +12,32 @@ use App\Repository\ShipRepository;
 use App\Repository\ShootRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use App\Enum\GameStatusEnum;
+use Utils;
 
 class GameManipulator
 {
+    /**
+     * @var EntityManagerInterface $entityManager
+     */
     private $entityManager;
+
+    /**
+     * @var ShipRepository $shipRepository
+     */
     private $shipRepository;
+
+    /**
+     * @var ShootRepository $shootRepository
+     */
     private $shootRepository;
 
+    /**
+     * Inject repositories
+     * 
+     * @param EntityManagerInterface $entityManager
+     * @param ShipRepository $shipRepository
+     * @param ShootRepository $shootRepository
+     */
     public function __construct(EntityManagerInterface $entityManager, ShipRepository $shipRepository, ShootRepository $shootRepository)
     {
         $this->entityManager = $entityManager;
@@ -34,10 +53,11 @@ class GameManipulator
     public function createGame(): Game
     {
         $game = new Game();
-        $game->setHash($this->generateRandomGameHash());
-        
+        $game->setHash(Utils::generateRandomGameHash());
+
         $player1 = new Player();
         $player1->setName('PLAYER 1');
+        $player1->setHash(Utils::generateRandomGameHash(50));
 
         $player2 = new Player();
         $player2->setName('PLAYER 2');
@@ -45,25 +65,23 @@ class GameManipulator
         $game->setPlayer1($player1);
         $game->setPlayer2($player2);
         $game->setCurrentPlayer($player1);
-        
+
         $game->setStatus(GameStatusEnum::RUNNING);
 
         $config = [
-            'ships' => [5,4,3,3,2],
+            'ships' => [5, 4, 3, 3, 2],
             'grid' => 10
         ];
 
         $orientations = [GameConstants::VERTICAL, GameConstants::HORIZONTAL];
 
-        foreach ($config['ships'] as $shipLength)
-        {
+        foreach ($config['ships'] as $shipLength) {
             $ship = $this->getRandShip($shipLength, $orientations[array_rand($orientations)], $game);
             $ship->setPlayer($player1);
             $game->addShip($ship);
         }
 
-        foreach ($config['ships'] as $shipLength)
-        {
+        foreach ($config['ships'] as $shipLength) {
             $ship = $this->getRandShip($shipLength, $orientations[array_rand($orientations)], $game);
             $ship->setPlayer($player2);
             $game->addShip($ship);
@@ -98,7 +116,8 @@ class GameManipulator
      * 
      * @return bool
      */
-    public function isAbandoned(Game $game): bool {
+    public function isAbandoned(Game $game): bool
+    {
         return $game->getStatus() === GameStatusEnum::ABANDONED;
     }
 
@@ -111,7 +130,7 @@ class GameManipulator
      * 
      * @return Shoot
      */
-    public function shoot($coordinates, $game): Shoot
+    public function shoot(array $coordinates, Game $game): Shoot
     {
         $shoot = new Shoot();
         $shoot->setGame($game);
@@ -128,15 +147,16 @@ class GameManipulator
      * Get current player's opponent
      * 
      * @param Game $game
+     * @param Player $player
      * 
      * @return Player
      */
-    public function getOpponentPlayer(Game $game): Player
+    public function getOpponentPlayer(Game $game, Player $player): Player
     {
-        if ($game->getCurrentPlayer() === $game->getPlayer1()) {
+        if ($player === $game->getPlayer1()) {
             return $game->getPlayer2();
         }
-        
+
         return $game->getPlayer1();
     }
 
@@ -144,26 +164,27 @@ class GameManipulator
      * Get all the current player shoots that hit an opponent ship
      * 
      * @param Game $game
+     * @param Player $player
      * 
      * @return array
      */
-    public function getCurrentPlayerHits(Game $game): array
-    {        
+    public function getPlayerHits(Game $game, Player $player): array
+    {
         $hits = [];
-    
+
         $opponentShips = $this->shipRepository
-            ->getPlayerShips($game, $this->getOpponentPlayer($game));
+            ->getPlayerShips($game, $this->getOpponentPlayer($game, $player));
 
         $collection = new ArrayCollection($opponentShips);
 
-        $opponentShipsCoordinates = $collection->map(function($ship) {
+        $opponentShipsCoordinates = $collection->map(function ($ship) {
             return $ship->getCoordinates();
         });
 
         $shoots = new ArrayCollection(
-            $this->shootRepository->getCurrentPlayerShoots($game)
+            $this->shootRepository->getPlayerShoots($game, $player)
         );
-        
+
         foreach ($opponentShips as $ship) {
             foreach ($ship->getCoordinates() as $shipCoord) {
                 foreach ($shoots as $shoot) {
@@ -184,7 +205,7 @@ class GameManipulator
      * 
      * @return Game
      */
-    public function switchCurrentPlayer($game): Game
+    public function switchCurrentPlayer(Game $game): Game
     {
         if ($game->getCurrentPlayer() === $game->getPlayer1()) {
             $game->setCurrentPlayer($game->getPlayer2());
@@ -194,7 +215,7 @@ class GameManipulator
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
-    
+
         return $game;
     }
 
@@ -203,12 +224,13 @@ class GameManipulator
      * 
      * @param Shoot $shoot
      * @param Game $game
+     * @param Player $player
      * 
      * @return Ship|null
      */
-    public function didShootHitOpponentShip(Shoot $shoot, Game $game): ?Ship
+    public function didShootHitOpponentShip(Shoot $shoot, Game $game, Player $shootingPlayer): ?Ship
     {
-        $opponentShips = $this->shipRepository->getPlayerShips($game, $this->getOpponentPlayer($game));
+        $opponentShips = $this->shipRepository->getPlayerShips($game, $this->getOpponentPlayer($game, $shootingPlayer));
 
         foreach ($opponentShips as $ship) {
             foreach ($ship->getCoordinates() as $coordinates) {
@@ -227,15 +249,16 @@ class GameManipulator
      * 
      * @param Ship $ship
      * @param Game $game
+     * @param Player $player
      * 
      * @return bool
      */
-    public function isShipSunk(Ship $ship, Game $game): bool
+    public function isShipSunk(Ship $ship, Game $game, Player $shootingPlayer): bool
     {
         foreach ($ship->getCoordinates() as $coordinates) {
             $isCoordHit = false;
 
-            foreach ($this->shootRepository->getCurrentPlayerShoots($game) as $shoot) {
+            foreach ($this->shootRepository->getPlayerShoots($game, $shootingPlayer) as $shoot) {
                 if ($shoot->getCoordinates() == $coordinates) {
                     $isCoordHit = true;
                     break;
@@ -254,18 +277,20 @@ class GameManipulator
      * Get opponent ships that have been sunk
      * 
      * @param Game $game 
+     * @param Player $player
      *  
      * @return array
      */
-    public function getOpponentShipsSunk(Game $game): array {
+    public function getOpponentShipsSunk(Game $game, Player $shootingPlayer): array
+    {
         $sunkShips = [];
 
         $opponentShips = $this
             ->shipRepository
-            ->getPlayerShips($game, $this->getOpponentPlayer($game));
+            ->getPlayerShips($game, $this->getOpponentPlayer($game, $shootingPlayer));
 
         foreach ($opponentShips as $ship) {
-            if ($this->isShipSunk($ship, $game)) {
+            if ($this->isShipSunk($ship, $game, $shootingPlayer)) {
                 $sunkShips[] = $ship;
             }
         }
@@ -274,28 +299,11 @@ class GameManipulator
     }
 
     /**
-     * Random string generator for game hash
-     * 
-     * @param int $length
-     * 
-     * @return string
-     */
-    private function generateRandomGameHash(int $length = 10): string {
-        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        $charactersLength = strlen($characters);
-        $randomString = '';
-        for ($i = 0; $i < $length; $i++) {
-            $randomString .= $characters[rand(0, $charactersLength - 1)];
-        }
-        return $randomString;
-    }
-
-    /**
      * Get a ship with random coordinates
      * 
      * @param int $length
-     * @param int $orientation
-     * @param int $game
+     * @param string $orientation
+     * @param Game $game
      * 
      * @return Ship
      */
@@ -303,39 +311,31 @@ class GameManipulator
     {
         $positionOk = false;
 
-        if ($orientation === GameConstants::HORIZONTAL)
-        {
+        if ($orientation === GameConstants::HORIZONTAL) {
 
-            while (!$positionOk)
-            {
+            while (!$positionOk) {
                 $coordinates = [];
                 $allCoordsChecked = true;
 
                 // horizontal ship
                 $line = rand(0, 9);
                 $column = rand(0, 10 - $length);
-                
-                for ($i=$column; $i < $column + $length; $i++)
-                {
-                    if ($game->getShipAt($line, $i))
-                    {
+
+                for ($i = $column; $i < $column + $length; $i++) {
+                    if ($game->getShipAt($line, $i)) {
                         $allCoordsChecked = false;
                         break;
-                    }                
+                    }
 
                     $coordinates[] = [$line, $i];
                 }
 
-                if ($allCoordsChecked)
-                {
+                if ($allCoordsChecked) {
                     $positionOk = true;
                 }
             }
-        } 
-        else 
-        {
-            while (!$positionOk)
-            {
+        } else {
+            while (!$positionOk) {
                 $coordinates = [];
                 $allCoordsChecked = true;
 
@@ -343,19 +343,16 @@ class GameManipulator
                 $line = rand(0, 10 - $length);
                 $column = rand(0, 9);
 
-                for ($i=$line; $i < $line + $length; $i++)
-                {
-                    if ($game->getShipAt($i, $column))
-                    {
+                for ($i = $line; $i < $line + $length; $i++) {
+                    if ($game->getShipAt($i, $column)) {
                         $allCoordsChecked = false;
                         break;
-                    }                
+                    }
 
                     $coordinates[] = [$i, $column];
                 }
 
-                if ($allCoordsChecked)
-                {
+                if ($allCoordsChecked) {
                     $positionOk = true;
                 }
             }

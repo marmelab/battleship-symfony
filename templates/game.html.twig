@@ -1,21 +1,39 @@
 {% extends "base.html.twig" %}
 
+{% block head %}
+	{{ parent() }}
+	{% if gamePlayer != game.currentPlayer %}
+		<meta http-equiv="refresh" content="5">
+	{% endif %}
+{% endblock %}
+
 {% block body %}
 
-	<div>
-		{% trans %}Player's turn{% endtrans %}:
-		{{ game.currentPlayer.name }}
-	</div>
-
-	{% for msg in app.session.flashBag.get('shoot_result') %}
-		{{ msg }}
-	{% endfor %}
 
 	<div class="opponent">
+
 		{{ include('board.html.twig', {opponent_ships_sunk: opponent_ships_sunk, shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
 
 		<div>
 			<div class="opponent-fleet-status">
+				<h1>{{gamePlayer.name}}</h1>
+
+				<div>
+					{% if gamePlayer == game.currentPlayer %}
+						<h3 style="color: green;">
+							{% trans %}YOUR TURN{% endtrans %}:
+						</h3>
+					{% else %}
+						<h3 style="color: orange;">
+							{% trans %}WAITING FOR YOUR OPPONENT{% endtrans %}:
+						</h3>
+					{% endif %}
+				</div>
+
+				{% for msg in app.session.flashBag.get('shoot_result') %}
+					{{ msg }}
+				{% endfor %}
+
 				{% for ship in opponent_ships %}
 					<div class="ship">
 						{% for coordinate in ship.coordinates %}
