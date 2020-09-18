@@ -66,4 +66,14 @@ class PlayerProvider
 
         return $player;
     }
+
+    /**
+     * Put in session the first player hash
+     * 
+     * @param Game $game
+     */
+    public function initFirstPlayerSession(Game $game) 
+    {
+        $this->session->set('player_hash', $game->getPlayer1()->getHash());
+    }
 }

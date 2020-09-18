@@ -5,6 +5,7 @@ use App\Form\Type\CreateGameType;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\GameManipulator;
+use App\Provider\PlayerProvider;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -18,16 +19,16 @@ class WelcomeController extends AbstractController
     private $gameManipulator;
 
     /**
-     * Used to init the player 1 hash
+     * Used to init the player 1 hash in session
      * 
-     * @var SessionInterface $session
+     * @var PlayerProvider $playerProvider
      */
-    private $session;
+    private $playerProvider;
 
-    public function __construct(GameManipulator $gameManipulator, SessionInterface $session)
+    public function __construct(GameManipulator $gameManipulator, PlayerProvider $playerProvider)
     {
         $this->gameManipulator = $gameManipulator;
-        $this->session = $session;
+        $this->playerProvider = $playerProvider;
     }
 
     public function index(Request $request): Response
@@ -39,7 +40,7 @@ class WelcomeController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $game = $this->gameManipulator->createGame();
 
-            $this->session->set('player_hash', $game->getPlayer1()->getHash());
+            $this->playerProvider->initFirstPlayerSession($game);
 
             return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
         }

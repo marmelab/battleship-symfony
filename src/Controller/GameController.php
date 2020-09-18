@@ -38,8 +38,7 @@ class GameController extends AbstractController
      * @var PlayerProvider $playerProvider
      */
     private $playerProvider;
-    private $session;
-    private $playerManipulator;
+
     /**
      * Inject and initialize the services used in the controller
      * 
@@ -70,7 +69,7 @@ class GameController extends AbstractController
             return $this->render('abandoned.html.twig');
         }
 
-        $player = $this->playerProvider->getPlayer($game);
+        $gamePlayer = $this->playerProvider->getPlayer($game);
         $currentPlayer = $game->getCurrentPlayer();
 
         $abandonForm = $this->createForm(AbandonGameType::class);
@@ -84,37 +83,38 @@ class GameController extends AbstractController
 
         // TODO: extract all the view variables creation
         $triggerViews = [];
-        if ($currentPlayer == $player) {
+        if ($currentPlayer == $gamePlayer) {
             $triggerViews = $this->createTriggersForms($game);
             $trigger = $this->createForm(ShootShipType::class)->handleRequest($request);
 
             if ($trigger->isSubmitted() && $trigger->isValid()) {
-                $this->shootOpponentFleet($trigger->getData()['coordinates'], $game, $player);
+                $this->shootOpponentFleet($trigger->getData()['coordinates'], $game, $gamePlayer);
 
                 return $this->redirectToRoute('game_index', ['hash' => $game->getHash()]);
             }
         }
 
-        $hits = $this->gameManipulator->getPlayerHits($game, $player);
+        $hits = $this->gameManipulator->getPlayerHits($game, $gamePlayer);
 
         $ships = $this
             ->getDoctrine()
             ->getRepository(Ship::class)
-            ->getPlayerShips($game, $player);
+            ->getPlayerShips($game, $gamePlayer);
 
         $shoots = $this
             ->getDoctrine()
             ->getRepository(Shoot::class)
-            ->getPlayerShoots($game, $player);
+            ->getPlayerShoots($game, $gamePlayer);
 
         $opponentShips = $this
             ->getDoctrine()
             ->getRepository(Ship::class)
-            ->getPlayerShips($game, $this->gameManipulator->getOpponentPlayer($game, $player));
+            ->getPlayerShips($game, $this->gameManipulator->getOpponentPlayer($game, $gamePlayer));
 
-        $opponentSunkShips = $this->gameManipulator->getOpponentShipsSunk($game, $player);
+        $opponentSunkShips = $this->gameManipulator->getOpponentShipsSunk($game, $gamePlayer);
 
         return $this->render('game.html.twig', [
+            'gamePlayer' => $gamePlayer,
             'game' => $game,
             'ships' => $ships,
             'opponent_ships' => $opponentShips,

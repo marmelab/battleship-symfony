@@ -228,9 +228,9 @@ class GameManipulator
      * 
      * @return Ship|null
      */
-    public function didShootHitOpponentShip(Shoot $shoot, Game $game, Player $player): ?Ship
+    public function didShootHitOpponentShip(Shoot $shoot, Game $game, Player $shootingPlayer): ?Ship
     {
-        $opponentShips = $this->shipRepository->getPlayerShips($game, $this->getOpponentPlayer($game, $player));
+        $opponentShips = $this->shipRepository->getPlayerShips($game, $this->getOpponentPlayer($game, $shootingPlayer));
 
         foreach ($opponentShips as $ship) {
             foreach ($ship->getCoordinates() as $coordinates) {
@@ -253,12 +253,12 @@ class GameManipulator
      * 
      * @return bool
      */
-    public function isShipSunk(Ship $ship, Game $game, Player $player): bool
+    public function isShipSunk(Ship $ship, Game $game, Player $shootingPlayer): bool
     {
         foreach ($ship->getCoordinates() as $coordinates) {
             $isCoordHit = false;
 
-            foreach ($this->shootRepository->getPlayerShoots($game, $player) as $shoot) {
+            foreach ($this->shootRepository->getPlayerShoots($game, $shootingPlayer) as $shoot) {
                 if ($shoot->getCoordinates() == $coordinates) {
                     $isCoordHit = true;
                     break;
@@ -281,16 +281,16 @@ class GameManipulator
      *  
      * @return array
      */
-    public function getOpponentShipsSunk(Game $game, Player $player): array
+    public function getOpponentShipsSunk(Game $game, Player $shootingPlayer): array
     {
         $sunkShips = [];
 
         $opponentShips = $this
             ->shipRepository
-            ->getPlayerShips($game, $this->getOpponentPlayer($game, $player));
+            ->getPlayerShips($game, $this->getOpponentPlayer($game, $shootingPlayer));
 
         foreach ($opponentShips as $ship) {
-            if ($this->isShipSunk($ship, $game, $player)) {
+            if ($this->isShipSunk($ship, $game, $shootingPlayer)) {
                 $sunkShips[] = $ship;
             }
         }

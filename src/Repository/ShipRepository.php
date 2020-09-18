@@ -44,7 +44,6 @@ class ShipRepository extends ServiceEntityRepository
      */
     public function getPlayerShips(Game $game, Player $player): array
     {
-        $ships = $this->findBy(['game' => $game, 'player' => $player]);    
-        return $ships;
+        return $this->findBy(['game' => $game, 'player' => $player]);    
     }
 }
