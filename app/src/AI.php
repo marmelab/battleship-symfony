@@ -24,7 +24,7 @@ class AI
     {
         $response = $this->client->request(
             'POST',
-            'http://api:8383' . $endpoint,
+            'http://advisor-go:8383' . $endpoint,
             ['body' => $body]
         );
 

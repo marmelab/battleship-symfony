@@ -6,16 +6,16 @@ services:
     ports:
       - 9000:9000
     volumes:
-      - .:/app
+      - ./app:/app
     depends_on:
       - postgres
-      - api
+      - advisor-go
   nginx:
     image: nginx:alpine
     ports:
       - 80:80
     volumes:
-      - .:/app
+      - ./app:/app
       - ./docker/nginx/site.conf:/etc/nginx/conf.d/default.conf
       - ./logs:/var/log/nginx/
     depends_on:
@@ -30,13 +30,11 @@ services:
       - "5433:5432"
     expose:
       - "5432"
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  advisor-go:
+    build: docker/go
     volumes:
-      - ./go/src/battleship:/go/src/battleship
-      - ./go/test/battleship:/go/test/battleship
+      - ./advisor-go/src/battleship:/go/src/battleship
+      - ./advisor-go/test/battleship:/go/test/battleship
     command: go run ./src/battleship/main.go &
     working_dir: /go
     ports:
