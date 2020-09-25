@@ -11,6 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use App\Form\Type\ShootShipType;
 use App\Form\Type\AbandonGameType;
+use App\Manager\AdvisorManager;
+use App\AI;
 use App\PlayerManipulator;
 use App\Provider\PlayerProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -63,7 +65,7 @@ class GameController extends AbstractController
     /**
      * @ParamConverter("game", options={"mapping": {"hash": "hash"}})
      */
-    public function index(Request $request, Game $game): Response
+    public function index(Request $request, Game $game, AI $ai): Response
     {
         if ($this->gameManipulator->isAbandoned($game)) {
             return $this->render('abandoned.html.twig');
@@ -106,6 +108,12 @@ class GameController extends AbstractController
         $hits = $this->gameManipulator->getPlayerHits($game, $gamePlayer);
         $opponentHits = $this->gameManipulator->getPlayerHits($game, $this->gameManipulator->getOpponentPlayer($game, $gamePlayer));
 
+        $heatmap = $ai->getHeatMap($game);
+        $nextShots = $ai->getNextShots($game);
+
+        // dump($nextShots);
+        // die();
+
         $ships = $this
             ->getDoctrine()
             ->getRepository(Ship::class)
@@ -139,7 +147,9 @@ class GameController extends AbstractController
             'opponent_shoots' => $opponentShoots,
             'shoots' => $shoots,
             'triggers' => $triggerViews,
-            'abandon_form' => $abandonForm->createView()
+            'abandon_form' => $abandonForm->createView(),
+            'heatmap' => $heatmap,
+            'next_shots' => $nextShots
         ]);
     }
 

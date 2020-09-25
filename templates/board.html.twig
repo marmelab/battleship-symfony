@@ -8,6 +8,32 @@
 		{% endfor %}
 	</div>
 
+	
+
+	{% if gamePlayer == game.currentPlayer %}
+		{% if next_shots is defined %}
+			<div class="layer">
+				{% for shot in next_shots %}
+					<div class="square" style="grid-row-start: {{shot.Row+1}}; grid-row-end: {{shot.Row+1}}; grid-column-start: {{shot.Column+1}}; grid-column-end: {{shot.Column+1}};">
+						<div class="best-move"></div>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+	{% endif %}
+
+	{% if heatmap is defined %}
+		<div class="layer">
+			<div class="hits">
+				{% for line in heatmap.Cells %}
+					{% for column in line %}
+						<div class="square" style="opacity: 70%; color: black;">{{column}}</div>
+					{% endfor %}
+				{% endfor %}
+			</div>
+		</div>
+	{% endif %}
+
 	{% if ships is defined %}
 		<div class="fleet">
 			{% for ship in ships %}

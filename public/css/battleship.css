@@ -47,6 +47,18 @@ body {
   grid-template-rows: repeat(10, minmax(0, 1fr));
 }
 
+.layer .square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.layer .best-move {
+  background: yellow;
+  width: 50%;
+  height: 50%;
+}
+
 .layer .sea_square {
   width: 100%;
   height: 100%;
