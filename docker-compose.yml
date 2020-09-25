@@ -8,7 +8,8 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - mysql
+      - postgres
+      - api
   nginx:
     image: nginx:alpine
     ports:
@@ -19,14 +20,24 @@ services:
       - ./logs:/var/log/nginx/
     depends_on:
       - php
-  mysql:
-    image: mysql:5.7
+  postgres:
+    image: postgres:11
     environment:
-      - MYSQL_DATABASE=battleship
-      - MYSQL_USER=battleship
-      - MYSQL_PASSWORD=battleship
-      - MYSQL_ROOT_PASSWORD=battleship
+      - POSTGRES_USER=battleship
+      - POSTGRES_PASSWORD=battleship
+      - POSTGRES_DB=battleship
     ports:
-      - 3306:3306
+      - "5433:5432"
+    expose:
+      - "5432"
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - ./mysql:/var/lib/mysql
+      - ./go/src/battleship:/go/src/battleship
+      - ./go/test/battleship:/go/test/battleship
+    command: go run ./src/battleship/main.go &
+    working_dir: /go
+    ports:
+      - "8383:8383"
