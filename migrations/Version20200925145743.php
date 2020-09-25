@@ -10,11 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-<<<<<<< HEAD:app/migrations/Version20200925152521.php
-final class Version20200925152521 extends AbstractMigration
-=======
-final class Version20200925145556 extends AbstractMigration
->>>>>>> Import go project and replace mysql with postgres:migrations/Version20200925145556.php
+final class Version20200925145743 extends AbstractMigration
 {
     public function getDescription() : string
     {
