@@ -1,5 +1,7 @@
 {{ "Win Game"|trans }}
 
+{% if winner %}
 {{ winner.name }}
+{% endif %}
 
 <a href="{{ path('index') }}">Start Over</a>

@@ -2,21 +2,36 @@
 
 {% block head %}
 	{{ parent() }}
-	{% if gamePlayer != game.currentPlayer %}
-		<meta http-equiv="refresh" content="5">
+	{% if gamePlayer != game.currentPlayer or game.status == 'OPEN' %}
+		<meta http-equiv="refresh" content="2">
 	{% endif %}
 {% endblock %}
 
 {% block body %}
 
+	{% if game.status == 'OPEN' %}
+		<div class="waiting-screen">
+			{% trans %}Waiting for opponent{% endtrans %}
+		</div>
+	{% endif %}
 
 	<div class="opponent">
 
-		{{ include('board.html.twig', {opponent_ships_sunk: opponent_ships_sunk, shoots: shoots, hits: hits, triggers: triggers}, with_context = false) }}
+		<div>
+			{% trans %}Opponent Fleet{% endtrans %}
+			{{ include('board.html.twig', {
+				opponent_ships_sunk: opponent_ships_sunk, 
+				shoots: shoots, 
+				hits: hits, 
+				triggers: triggers
+			}, with_context = false) }}
+		</div>
 
 		<div>
 			<div class="opponent-fleet-status">
 				<h1>{{gamePlayer.name}}</h1>
+
+				<h3>Game Hash: {{game.hash}}</h3>
 
 				<div>
 					{% if gamePlayer == game.currentPlayer %}
@@ -30,10 +45,16 @@
 					{% endif %}
 				</div>
 
+
 				{% for msg in app.session.flashBag.get('shoot_result') %}
 					{{ msg }}
+					{% if msg == "You hit a ship!" or msg == "You have SUNK a ship! Well done!" %}
+						{% include "explosion-sound.html.twig" %}
+					{% endif %}
 				{% endfor %}
 
+				{% trans %}Opponent Ships{% endtrans %}:
+				
 				{% for ship in opponent_ships %}
 					<div class="ship">
 						{% for coordinate in ship.coordinates %}
@@ -45,17 +66,21 @@
 						{% endfor %}
 					</div>
 				{% endfor %}
+
+				<br>
+				<div>
+					{{ form_start(abandon_form) }}
+					{{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
+					{{ form_end(abandon_form) }}
+				</div>
 			</div>
 
-			<div>
-				{{ form_start(abandon_form) }}
-				{{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
-				{{ form_end(abandon_form) }}
-			</div>
+
 		</div>
 
 	</div>
 
-	{{ include('board.html.twig', {ships: ships}, with_context = false) }}
+	{% trans %}My Fleet{% endtrans %}:
+	{{ include('board.html.twig', {ships: ships, opponent_shoots: opponent_shoots, opponent_hits: opponent_hits}, with_context = false) }}
 
 {% endblock %}

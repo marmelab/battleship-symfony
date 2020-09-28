@@ -26,19 +26,24 @@ class Game
     private $hash;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Player", cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Player", cascade={"persist"})
      */
     private $player1;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Player", cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Player", cascade={"persist"})
      */
     private $player2;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Player", cascade={"persist"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Player", cascade={"persist"})
      */
     private $currentPlayer;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Player", cascade={"persist"})
+     */
+    private $winner;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Ship", mappedBy="game", cascade={"persist"})
@@ -72,7 +77,7 @@ class Game
         return $this;
     }
 
-    public function getPlayer1(): Player
+    public function getPlayer1(): ?Player
     {
        return $this->player1;
     }
@@ -84,7 +89,7 @@ class Game
         return $this;
     }
 
-    public function getPlayer2(): Player
+    public function getPlayer2(): ?Player
     {
         return $this->player2;
     }
@@ -96,7 +101,7 @@ class Game
         return $this;
     }
 
-    public function getCurrentPlayer(): Player
+    public function getCurrentPlayer(): ?Player
     {
         return $this->currentPlayer;
     }
@@ -104,6 +109,18 @@ class Game
     public function setCurrentPlayer(Player $player): self
     {
         $this->currentPlayer = $player;
+
+        return $this;
+    }
+
+    public function getWinner(): ?Player
+    {
+        return $this->winner;
+    }
+
+    public function setWinner(Player $player): self
+    {
+        $this->winner = $player;
 
         return $this;
     }
