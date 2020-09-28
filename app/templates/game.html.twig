@@ -1,0 +1,108 @@
+{% extends "base.html.twig" %}
+
+{% block head %}
+	{{ parent() }}
+	{% if gamePlayer != game.currentPlayer or game.status == 'OPEN' %}
+		<meta http-equiv="refresh" content="2">
+	{% endif %}
+{% endblock %}
+
+{% block body %}
+
+	{% if game.status == 'OPEN' %}
+		<div class="waiting-screen">
+			{% trans %}Waiting for opponent{% endtrans %}
+		</div>
+	{% endif %}
+
+	<div class="opponent">
+
+		<div>
+			{% trans %}Opponent Fleet{% endtrans %}
+			{{ include('board.html.twig', {
+				opponent_ships_sunk: opponent_ships_sunk, 
+				shoots: shoots, 
+				hits: hits, 
+				triggers: triggers,
+				heatmap: heatmap,
+				next_shots: next_shots,
+				gamePlayer: gamePlayer,
+				game: game
+			}, with_context = false) }}
+		</div>
+
+		<div>
+			<div class="opponent-fleet-status">
+				<h1>{{gamePlayer.name}}</h1>
+
+				<h3>Game Hash:
+					{{game.hash}}</h3>
+
+				<div>
+					{% if gamePlayer == game.currentPlayer %}
+						<h3 style="color: green;">
+							{{ "Your Turn"|trans|upper }}
+						</h3>
+					{% else %}
+						<h3 style="color: orange;">
+							{% trans %}Waiting for your opponent{% endtrans %}:
+						</h3>
+					{% endif %}
+				</div>
+
+
+				{% for msg in app.session.flashBag.get('shoot_result') %}
+					{{ msg }}
+					{% if msg == "You hit a ship!" or msg == "You have SUNK a ship! Well done!" %}
+						{% include "explosion-sound.html.twig" %}
+					{% endif %}
+				{% endfor %}
+
+				{% trans %}Opponent Ships{% endtrans %}:
+
+				{% for ship in opponent_ships %}
+					<div class="ship">
+						{% for coordinate in ship.coordinates %}
+							{% if match_coordinate(coordinate, shoots) %}
+								<div class="part hit"></div>
+							{% else %}
+								<div class="part"></div>
+							{% endif %}
+						{% endfor %}
+					</div>
+				{% endfor %}
+
+				<br>
+				<div>
+					{{ form_start(abandon_form) }}
+					{{ form_widget(abandon_form.save, { 'label': 'Abandon Game' }) }}
+					{{ form_end(abandon_form) }}
+				</div>
+			</div>
+
+
+		</div>
+
+		{# <div>
+			{% for shot in next_shots %}
+				<div class="square" style="grid-row-start: 1; grid-row-end: 1; grid-column-start: 1; grid-column-end: 1;">
+					shot:
+					{{shot.Row}}
+					{{shot.Column}}
+				</div>
+			{% endfor %}
+		</div> #}
+
+
+	</div>
+
+	{% trans %}My Fleet{% endtrans %}:
+	{{ include('board.html.twig', {
+		ships: ships, 
+		opponent_shoots: opponent_shoots, 
+		opponent_hits: opponent_hits,
+		gamePlayer: gamePlayer,
+				game: game
+	}, with_context = false) }}
+
+{% endblock %}
