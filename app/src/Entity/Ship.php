@@ -32,9 +32,6 @@ class Ship
      */
     private $player;
 
-     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Category", inversedBy="products")
-     */
     public function getId(): ?int
     {
         return $this->id;

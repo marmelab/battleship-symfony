@@ -65,7 +65,7 @@ class Player
         return $this->shoots;
     }
 
-    public function getHash(): string 
+    public function getHash(): ?string 
     {
         return $this->hash;
     }
