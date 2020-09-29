@@ -2,16 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\GameRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use App\Enum\GameStatusEnum;
+use JsonSerializable;
 
 /**
  * @ORM\Entity(repositoryClass=GameRepository::class)
  */
-class Game
+class Game implements JsonSerializable
 {
     /**
      * @ORM\Id
@@ -174,5 +173,13 @@ class Game
         }
 
         return null;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            "id" => $this->getId(),
+            "hash" => $this->getHash(),
+        ];
     }
 }
