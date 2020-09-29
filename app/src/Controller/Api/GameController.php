@@ -14,7 +14,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class GameController extends AbstractController
 {
     /**
-     * Create a game and returns its hash to the player
+     * Create a game and return its hash to the player
      * 
      * @param GameRepository $gameRepository
      * @return JsonResponse
