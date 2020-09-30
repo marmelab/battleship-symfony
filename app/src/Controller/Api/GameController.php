@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\Game;
+use App\Enum\GameStatusEnum;
 use App\GameManipulator;
 use App\Repository\GameRepository;
 use App\Repository\ShipRepository;
@@ -13,6 +14,24 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 class GameController extends AbstractController
 {
+    /**
+     * Get open games
+     * 
+     * @param GameRepository $gameRepository
+     * @return JsonResponse
+     * @Route("/api/games", name="games_index", methods={"GET"})
+     */
+    public function index(GameRepository $gameRepository)
+    {
+        $games = $gameRepository->findBy(['status' => GameStatusEnum::OPEN]);
+
+        return $this->json([
+            'status' => 200,
+            'success' => "Open games fetched successfully",
+            'games' => $games
+        ]);
+    }
+
     /**
      * Create a game and return its hash to the player
      * 
