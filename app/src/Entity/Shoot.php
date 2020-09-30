@@ -4,11 +4,12 @@ namespace App\Entity;
 
 use App\Repository\ShootRepository;
 use Doctrine\ORM\Mapping as ORM;
+use JsonSerializable;
 
 /**
  * @ORM\Entity(repositoryClass=ShootRepository::class)
  */
-class Shoot
+class Shoot implements JsonSerializable
 {
     /**
      * @ORM\Id
@@ -71,5 +72,13 @@ class Shoot
         $this->coordinates = $coordinates;
 
         return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            "id" => $this->getId(),
+            "coordinates" => $this->getCoordinates(),
+        ];
     }
 }

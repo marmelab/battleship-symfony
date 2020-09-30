@@ -165,7 +165,7 @@ class GameManipulator
             $player2 = $this->playerRepository->findOneBy(['hash' => $hash]);
         }
 
-        if (!$player2) {
+        if (!$player2 || !$player2->getHash()) {
             $player2 = new Player();
             $player2->setName('PLAYER 2');
 
