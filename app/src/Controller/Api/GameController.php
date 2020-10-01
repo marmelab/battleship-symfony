@@ -42,9 +42,13 @@ class GameController extends AbstractController
      * @return JsonResponse
      * @Route("/api/games", name="games_create", methods={"POST"})
      */
-    public function create(GameManipulator $gameManipulator)
+    public function create(Request $request, GameManipulator $gameManipulator)
     {
-        $game = $gameManipulator->createGame();
+        if ($request->query->get('mode') === 'demo') {
+            $game = $gameManipulator->createDemoGame();
+        } else {
+            $game = $gameManipulator->createGame();
+        }
 
         return $this->json([
             'status' => 200,
@@ -93,9 +97,13 @@ class GameController extends AbstractController
      * @return JsonResponse
      * @Route("/api/games/{hash}/join", name="games_join", methods={"PUT"})
      */
-    public function join(Game $game, GameManipulator $gameManipulator) 
+    public function join(Request $request, Game $game, GameManipulator $gameManipulator) 
     {
-        $game = $gameManipulator->joinGame($game->getHash());
+        if ($request->query->get('mode') === 'demo') {
+            $game = $gameManipulator->joinGame($game->getHash(), true);
+        } else {
+            $game = $gameManipulator->joinGame($game->getHash());
+        }
 
         if (!$game) {
             return $this->json([

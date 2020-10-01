@@ -72,12 +72,16 @@ class GameManipulator
         $this->session = $session;
     }
 
+    public function createDemoGame() {
+        return $this->createGame($demo = true);
+    }
+
     /**
      * Create a new game
      * 
      * @return Game
      */
-    public function createGame(): Game
+    public function createGame($demo = false): Game
     {
         $game = new Game();
         $game->setHash(Utils::generateRandomGameHash());
@@ -104,7 +108,11 @@ class GameManipulator
 
         $game->setStatus(GameStatusEnum::OPEN);
 
-        $game = $this->initShipsForPlayer($game, $player1);
+        if ($demo) {
+            $game = $this->initDemoShipsForPlayer1($game, $player1);
+        } else {
+            $game = $this->initShipsForPlayer($game, $player1);
+        }
 
         $this->entityManager->persist($game);
         $this->entityManager->flush();
@@ -138,6 +146,46 @@ class GameManipulator
         return $game;
     }
 
+    public function initDemoShipsForPlayer1(Game $game, Player $player): Game
+    {
+        $fleetCoordinates = [
+            [[1,5],[1,6]],
+            [[6,1],[6,2],[6,3],[6,4],[6,5]],
+            [[0,0],[1,0],[2,0],[3,0]],
+            [[0,4],[0,5],[0,6]],
+            [[7,5],[7,6],[7,7]],
+        ];
+
+        foreach ($fleetCoordinates as $coordinates) {
+            $ship = new Ship();
+            $ship->setCoordinates($coordinates);
+            $ship->setPlayer($player);
+            $game->addShip($ship);
+        }
+
+        return $game;
+    }
+
+    public function initDemoShipsForPlayer2(Game $game, Player $player): Game
+    {
+        $fleetCoordinates = [
+            [[8,3],[8,4]],
+            [[1,1],[1,2],[1,3],[1,4]],
+            [[3,5],[3,6],[3,7],[3,8],[3,9]],
+            [[3,2],[4,2],[5,2]],
+            [[7,0],[8,0],[9,0]],
+        ];
+
+        foreach ($fleetCoordinates as $coordinates) {
+            $ship = new Ship();
+            $ship->setCoordinates($coordinates);
+            $ship->setPlayer($player);
+            $game->addShip($ship);
+        }
+
+        return $game;
+    }
+
     /**
      * Add a second player to the game
      * 
@@ -145,7 +193,7 @@ class GameManipulator
      * 
      * @return Game|null
      */
-    public function joinGame(string $gameHash): ?Game
+    public function joinGame(string $gameHash, $demo = false): ?Game
     {
         $game = $this->gameRepository->findOneBy(['hash' => $gameHash]);
 
@@ -175,7 +223,13 @@ class GameManipulator
         }
 
         $game->setPlayer2($player2);
-        $game = $this->initShipsForPlayer($game, $player2);
+
+        if ($demo) {
+            $game = $this->initDemoShipsForPlayer2($game, $player2);
+        } else {
+            $game = $this->initShipsForPlayer($game, $player2);
+        }
+
         $game->setStatus(GameStatusEnum::RUNNING);
 
         $this->entityManager->persist($game);
