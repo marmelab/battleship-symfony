@@ -79,6 +79,8 @@ class GameController extends AbstractController
             'status' => 200,
             'success' => "Game fetched successfully",
             'game' => $game->getHash(),
+            'game_status' => $game->getStatus(),
+            'winner' => $game->getWinner(),
             'current_player' => $game->getCurrentPlayer(),
             'player1' => $game->getPlayer1(),
             'player2' => $game->getPlayer2(),
