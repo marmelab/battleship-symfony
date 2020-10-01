@@ -41,6 +41,11 @@ class ShootController extends AbstractController
             $gameManipulator->switchCurrentPlayer($game);
         }
 
+        $winner = $gameManipulator->getWinner($game);
+        if ($winner) {
+            $gameManipulator->setGameAsWon($game, $winner);
+        }
+
         $hits = $gameManipulator->getPlayerHits($game, $player);
         $shoots = $shootRepository->getPlayerShoots($game, $player);
 
