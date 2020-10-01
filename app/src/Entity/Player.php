@@ -5,11 +5,12 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use JsonSerializable;
 
 /**
  * @ORM\Entity(repositoryClass=PlayerRepository::class)
  */
-class Player
+class Player implements JsonSerializable
 {
     /**
      * @ORM\Id
@@ -75,5 +76,14 @@ class Player
         $this->hash = $hash;
 
         return $this;
+    }
+
+    public function jsonSerialize()
+    {
+        return [
+            "id" => $this->getId(),
+            "name" => $this->getName(),
+            "hash" => $this->getHash(),
+        ];
     }
 }

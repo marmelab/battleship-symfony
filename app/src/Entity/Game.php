@@ -2,9 +2,11 @@
 
 namespace App\Entity;
 
+use App\Repository\GameRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use App\Enum\GameStatusEnum;
 use JsonSerializable;
 
 /**
@@ -180,6 +182,8 @@ class Game implements JsonSerializable
         return [
             "id" => $this->getId(),
             "hash" => $this->getHash(),
+            "player1" => $this->getPlayer1()->getId(),
+            "player2" => $this->getPlayer2()->getId(),
         ];
     }
 }
