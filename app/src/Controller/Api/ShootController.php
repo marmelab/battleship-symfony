@@ -30,7 +30,7 @@ class ShootController extends AbstractController
         if ($game->getCurrentPlayer() !== $player) {
             return $this->json([
                 'status' => 403,
-                'success' => "This is not your turn",
+                'error' => "This is not your turn",
             ]);
         }
 
